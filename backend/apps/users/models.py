@@ -53,3 +53,20 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.phone
+
+
+class OTPCode(models.Model):
+    """One-time password sent to a phone number for login."""
+
+    phone = models.CharField(max_length=15, db_index=True)
+    code_hash = models.CharField(max_length=128)
+    created_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.phone} ({self.created_at:%Y-%m-%d %H:%M})"
