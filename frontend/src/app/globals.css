@@ -128,3 +128,12 @@
     @apply font-sans;
   }
 }
+
+html,
+body,
+button,
+input,
+select,
+textarea {
+  font-family: "Vazirmatn Variable", system-ui, sans-serif;
+}
