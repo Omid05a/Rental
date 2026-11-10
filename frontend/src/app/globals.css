@@ -137,3 +137,25 @@ select,
 textarea {
   font-family: "Vazirmatn Variable", system-ui, sans-serif;
 }
+
+:root {
+  --background: #ffffff;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --primary: #ffc700;
+  --primary-foreground: #111111;
+  --secondary: #f6f6f4;
+  --secondary-foreground: #111111;
+  --muted: #f6f6f4;
+  --muted-foreground: #6b6b66;
+  --accent: #f6f6f4;
+  --accent-foreground: #111111;
+  --destructive: #dc2626;
+  --border: #e5e5e1;
+  --input: #e5e5e1;
+  --ring: #111111;
+  --radius: 0.75rem;
+}
