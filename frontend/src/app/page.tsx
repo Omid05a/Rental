@@ -1,13 +1,28 @@
-import { Button } from "@/components/ui/button";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import { useAuth } from "@/lib/auth";
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
-      <h1 className="text-3xl font-bold">رنتال</h1>
-      <p className="text-muted-foreground">
-        اجاره ساعتی و روزانه خودرو و دوچرخه
-      </p>
-      <Button>شروع کنید</Button>
-    </main>
-  );
+  const router = useRouter();
+  const { user, ready } = useAuth();
+
+  useEffect(() => {
+    if (!ready) return;
+    if (user) {
+      router.replace("/profile");
+      return;
+    }
+    let seen = false;
+    try {
+      seen = window.localStorage.getItem("rental.welcome_seen") === "1";
+    } catch {
+      // Treat unreadable storage as "not seen".
+    }
+    router.replace(seen ? "/login" : "/welcome");
+  }, [ready, user, router]);
+
+  return <div className="min-h-dvh bg-foreground" />;
 }
