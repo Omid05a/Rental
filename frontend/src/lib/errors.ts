@@ -7,6 +7,8 @@ const MESSAGES: Record<string, string> = {
   locked: "مدارک شما در حال بررسی یا تأییدشده است و قابل تغییر نیست.",
   missing_documents: "ابتدا همه مدارک را ارسال کنید.",
   profile_incomplete: "ابتدا نام و نام خانوادگی خود را در پروفایل وارد کنید.",
+  not_verified: "برای ثبت وسیله ابتدا باید هویت شما تأیید شود.",
+  too_many_photos: "حداکثر ۶ عکس برای هر وسیله مجاز است.",
 };
 
 export function getErrorMessage(error: unknown): string {
@@ -20,7 +22,7 @@ export function getErrorMessage(error: unknown): string {
       if ("phone" in data) {
         return "شماره موبایل معتبر نیست. نمونه: ۰۹۱۲۳۴۵۶۷۸۹";
       }
-      if ("file" in data) {
+      if ("file" in data || "image" in data) {
         return "فایل باید تصویر JPG، PNG یا WebP و کمتر از ۵ مگابایت باشد.";
       }
     }
