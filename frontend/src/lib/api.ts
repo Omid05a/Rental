@@ -17,7 +17,11 @@ export async function apiFetch<T>(
   token?: string,
 ): Promise<T> {
   const headers = new Headers(options.headers);
-  if (options.body && !headers.has("Content-Type")) {
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
+
+  // FormData sets its own multipart Content-Type with the boundary.
+  if (options.body && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
   if (token) {

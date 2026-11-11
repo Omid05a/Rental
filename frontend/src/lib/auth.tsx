@@ -26,6 +26,7 @@ export type User = {
   first_name: string;
   last_name: string;
   verification_status: VerificationStatus;
+  rejection_reason: string;
 };
 
 type Tokens = { access: string; refresh: string };

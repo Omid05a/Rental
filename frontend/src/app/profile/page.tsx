@@ -45,6 +45,9 @@ export default function ProfilePage() {
   const status = STATUS[user.verification_status];
   const fullName = `${user.first_name} ${user.last_name}`.trim();
   const initial = (user.first_name || "ر").charAt(0);
+  const canSendDocs =
+    user.verification_status === "not_submitted" ||
+    user.verification_status === "rejected";
 
   return (
     <PageShell>
@@ -73,12 +76,27 @@ export default function ProfilePage() {
               </span>
             </div>
           </div>
+
           <p className="text-sm leading-relaxed text-muted-foreground">
             {status.hint}
           </p>
-          <Button disabled className="h-12 rounded-full font-bold">
-            ارسال مدارک (به‌زودی)
-          </Button>
+
+          {user.verification_status === "rejected" && user.rejection_reason ? (
+            <p className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-400">
+              دلیل: {user.rejection_reason}
+            </p>
+          ) : null}
+
+          {canSendDocs ? (
+            <Button
+              onClick={() => router.push("/verification")}
+              className="h-12 rounded-full font-bold"
+            >
+              {user.verification_status === "rejected"
+                ? "ارسال مجدد مدارک"
+                : "ارسال مدارک"}
+            </Button>
+          ) : null}
         </section>
 
         <Button
