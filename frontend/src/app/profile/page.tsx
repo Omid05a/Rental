@@ -98,6 +98,14 @@ export default function ProfilePage() {
             </Button>
           ) : null}
         </section>
+        
+        <Button
+          variant="outline"
+          className="h-14 rounded-full border-border bg-card text-base"
+          onClick={() => router.push("/vehicles/mine")}
+        >
+          وسایل من
+        </Button>
 
         <Button
           variant="outline"
