@@ -1,14 +1,30 @@
+import { Car } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-background">
-      {children}
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-hidden bg-background text-foreground">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,rgba(255,199,0,0.14),transparent_70%)]"
+      />
+      <div className="relative flex flex-1 flex-col">{children}</div>
     </div>
   );
 }
 
-export function BrandHeader({
+export function BrandMark() {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex size-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+        <Car className="size-8" strokeWidth={2.25} />
+      </div>
+      <span className="text-2xl font-extrabold text-primary">رنتال</span>
+    </div>
+  );
+}
+
+export function AuthHeader({
   title,
   subtitle,
 }: {
@@ -16,11 +32,11 @@ export function BrandHeader({
   subtitle?: string;
 }) {
   return (
-    <header className="rounded-b-[40px] bg-foreground px-6 pb-10 pt-14 text-background">
-      <span className="text-2xl font-extrabold text-primary">رنتال</span>
-      <h1 className="mt-6 text-2xl font-bold leading-snug">{title}</h1>
+    <header className="flex flex-col items-center px-6 pb-8 pt-16 text-center">
+      <BrandMark />
+      <h1 className="mt-8 text-2xl font-bold">{title}</h1>
       {subtitle ? (
-        <p className="mt-2 text-sm leading-relaxed text-background/70">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {subtitle}
         </p>
       ) : null}

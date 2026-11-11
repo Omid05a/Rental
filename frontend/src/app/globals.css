@@ -139,23 +139,24 @@ textarea {
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #111111;
-  --card: #ffffff;
-  --card-foreground: #111111;
-  --popover: #ffffff;
-  --popover-foreground: #111111;
+  color-scheme: dark;
+  --background: #121212;
+  --foreground: #ffffff;
+  --card: #1c1c1c;
+  --card-foreground: #ffffff;
+  --popover: #1c1c1c;
+  --popover-foreground: #ffffff;
   --primary: #ffc700;
   --primary-foreground: #111111;
-  --secondary: #f6f6f4;
-  --secondary-foreground: #111111;
-  --muted: #f6f6f4;
-  --muted-foreground: #6b6b66;
-  --accent: #f6f6f4;
-  --accent-foreground: #111111;
-  --destructive: #dc2626;
-  --border: #e5e5e1;
-  --input: #e5e5e1;
-  --ring: #111111;
+  --secondary: #232323;
+  --secondary-foreground: #ffffff;
+  --muted: #232323;
+  --muted-foreground: #9a9a94;
+  --accent: #2a2a2a;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --border: #2e2e2e;
+  --input: #2a2a2a;
+  --ring: #ffc700;
   --radius: 0.75rem;
 }
