@@ -12,7 +12,7 @@ export default function Home() {
   useEffect(() => {
     if (!ready) return;
     if (user) {
-      router.replace("/profile");
+      router.replace(user.first_name ? "/profile" : "/onboarding");
       return;
     }
     let seen = false;
@@ -24,5 +24,5 @@ export default function Home() {
     router.replace(seen ? "/login" : "/welcome");
   }, [ready, user, router]);
 
-  return <div className="min-h-dvh bg-foreground" />;
+  return <div className="min-h-dvh bg-background" />;
 }

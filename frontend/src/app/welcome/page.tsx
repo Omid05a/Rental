@@ -18,7 +18,7 @@ const SLIDES = [
   },
 ];
 
-export const WELCOME_SEEN_KEY = "rental.welcome_seen";
+const WELCOME_SEEN_KEY = "rental.welcome_seen";
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="relative mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-foreground">
+    <div className="relative mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-background">
       {SLIDES.map((slide, i) => (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -78,7 +78,7 @@ export default function WelcomePage() {
         </div>
 
         <Button
-          className="h-12 w-full rounded-xl text-base font-semibold"
+          className="h-14 w-full rounded-full text-base font-bold"
           onClick={() => (isLast ? finish() : setIndex(index + 1))}
         >
           {isLast ? "شروع کنید" : "بعدی"}
