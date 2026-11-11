@@ -5,12 +5,16 @@ from django.http import JsonResponse
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from apps.users.admin_views import document_file
+
 
 def health(request):
     return JsonResponse({"status": "ok"})
 
 
 urlpatterns = [
+    # Must come before the admin include, otherwise the admin catch-all handles it.
+    path("admin/documents/<int:pk>/file/", document_file, name="admin-document-file"),
     path("admin/", admin.site.urls),
     path("api/health/", health),
     path("api/", include("apps.users.urls")),

@@ -1,6 +1,6 @@
 import os
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -9,6 +9,8 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
 INSTALLED_APPS = [
+    # Admin theme (must come before django.contrib.admin)
+    "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -75,7 +77,8 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "fa"
+# The admin panel is in English (left-to-right) for now.
+LANGUAGE_CODE = "en"
 TIME_ZONE = "Asia/Tehran"
 USE_I18N = True
 USE_TZ = True
@@ -83,6 +86,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -113,4 +117,9 @@ OTP_EXPIRY_SECONDS = 120
 OTP_RESEND_SECONDS = 60
 OTP_MAX_ATTEMPTS = 5
 
-PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
+# Admin theme settings
+UNFOLD = {
+    "SITE_TITLE": "Rental",
+    "SITE_HEADER": "Rental",
+    "SITE_SYMBOL": "key",
+}
