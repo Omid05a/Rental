@@ -1,11 +1,12 @@
 "use client";
 
+import { User as UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
-import { BrandHeader, PageShell } from "@/components/page-shell";
+import { IconInput } from "@/components/icon-input";
+import { AuthHeader, PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRequireAuth, type User } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
@@ -47,37 +48,41 @@ export default function OnboardingPage() {
 
   return (
     <PageShell>
-      <BrandHeader
+      <AuthHeader
         title="اطلاعات شما"
         subtitle="نام و نام خانوادگی خود را همان‌طور که در مدارک آمده وارد کنید."
       />
 
-      <main className="flex flex-1 flex-col px-6 py-8">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+      <main className="flex flex-1 flex-col px-6">
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="first_name">نام</Label>
-            <Input
+            <Label htmlFor="first_name" className="px-2">
+              نام
+            </Label>
+            <IconInput
               id="first_name"
+              icon={<UserIcon className="size-5" />}
               autoComplete="given-name"
               value={firstName ?? user.first_name}
               onChange={(event) => setFirstName(event.target.value)}
-              className="h-12 rounded-xl"
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="last_name">نام خانوادگی</Label>
-            <Input
+            <Label htmlFor="last_name" className="px-2">
+              نام خانوادگی
+            </Label>
+            <IconInput
               id="last_name"
+              icon={<UserIcon className="size-5" />}
               autoComplete="family-name"
               value={lastName ?? user.last_name}
               onChange={(event) => setLastName(event.target.value)}
-              className="h-12 rounded-xl"
             />
           </div>
 
           {error ? (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="px-2 text-sm text-destructive">
               {error}
             </p>
           ) : null}
@@ -85,7 +90,7 @@ export default function OnboardingPage() {
           <Button
             type="submit"
             disabled={loading || !first || !last}
-            className="h-12 w-full rounded-xl text-base font-semibold"
+            className="mt-2 h-14 w-full rounded-full text-base font-bold"
           >
             {loading ? "در حال ذخیره…" : "ذخیره و ادامه"}
           </Button>

@@ -1,11 +1,12 @@
 "use client";
 
+import { Smartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
-import { BrandHeader, PageShell } from "@/components/page-shell";
+import { IconInput } from "@/components/icon-input";
+import { AuthHeader, PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   InputOTP,
   InputOTPGroup,
@@ -96,32 +97,42 @@ export default function LoginPage() {
 
   return (
     <PageShell>
-      <BrandHeader
-        title="به رنتال خوش آمدید"
-        subtitle="با شماره موبایل وارد شوید یا ثبت‌نام کنید."
+      <AuthHeader
+        title={
+          step === "phone" ? "سفر خود را شروع کنید" : "کد تأیید را وارد کنید"
+        }
+        subtitle={
+          step === "phone"
+            ? "شماره موبایل خود را برای ورود یا ثبت‌نام وارد کنید."
+            : undefined
+        }
       />
 
-      <main className="flex flex-1 flex-col gap-5 px-6 py-8">
+      <main className="flex flex-1 flex-col px-6">
         {step === "phone" ? (
-          <form onSubmit={handlePhoneSubmit} className="flex flex-col gap-5">
+          <form
+            onSubmit={handlePhoneSubmit}
+            className="flex flex-1 flex-col gap-5"
+          >
             <div className="flex flex-col gap-2">
-              <Label htmlFor="phone">شماره موبایل</Label>
-              <Input
+              <Label htmlFor="phone" className="px-2">
+                شماره موبایل
+              </Label>
+              <IconInput
                 id="phone"
+                icon={<Smartphone className="size-5" />}
                 type="tel"
                 inputMode="numeric"
                 autoComplete="tel"
-                dir="ltr"
                 placeholder="۰۹۱۲۳۴۵۶۷۸۹"
                 maxLength={11}
                 value={phone}
                 onChange={(event) => setPhone(event.target.value)}
-                className="h-12 rounded-xl"
               />
             </div>
 
             {error ? (
-              <p role="alert" className="text-sm text-destructive">
+              <p role="alert" className="px-2 text-sm text-destructive">
                 {error}
               </p>
             ) : null}
@@ -129,19 +140,18 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading || phone.length < 11}
-              className="h-12 w-full rounded-xl text-base font-semibold"
+              className="h-14 w-full rounded-full text-base font-bold"
             >
               {loading ? "در حال ارسال…" : "دریافت کد تأیید"}
             </Button>
 
-            <p className="text-center text-xs text-muted-foreground">
+            <p className="mt-auto pb-8 pt-6 text-center text-xs text-muted-foreground">
               با ورود، قوانین و شرایط رنتال را می‌پذیرید.
             </p>
           </form>
         ) : (
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-lg font-bold">کد تأیید را وارد کنید</h2>
+          <div className="flex flex-1 flex-col gap-5">
+            <div className="flex flex-col items-center gap-1 text-center">
               <p className="text-sm text-muted-foreground">
                 کد ۶ رقمی به شماره <bdi dir="ltr">{toFa(phone)}</bdi> ارسال شد.
               </p>
@@ -151,7 +161,7 @@ export default function LoginPage() {
                   setStep("phone");
                   setError(null);
                 }}
-                className="self-start text-sm font-medium underline underline-offset-4"
+                className="text-sm font-medium text-primary underline underline-offset-4"
               >
                 ویرایش شماره
               </button>
@@ -167,9 +177,13 @@ export default function LoginPage() {
                 inputMode="numeric"
                 autoFocus
               >
-                <InputOTPGroup>
+                <InputOTPGroup className="gap-2">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <InputOTPSlot key={i} index={i} className="size-12 text-lg" />
+                    <InputOTPSlot
+                      key={i}
+                      index={i}
+                      className="size-12 rounded-xl! border! bg-card text-lg"
+                    />
                   ))}
                 </InputOTPGroup>
               </InputOTP>
@@ -185,7 +199,7 @@ export default function LoginPage() {
               type="button"
               disabled={loading || code.length !== 6}
               onClick={() => verify(code)}
-              className="h-12 w-full rounded-xl text-base font-semibold"
+              className="h-14 w-full rounded-full text-base font-bold"
             >
               {loading ? "در حال بررسی…" : "تأیید و ورود"}
             </Button>
@@ -200,14 +214,14 @@ export default function LoginPage() {
                 variant="ghost"
                 disabled={loading}
                 onClick={requestCode}
-                className="h-11 rounded-xl"
+                className="h-12 rounded-full text-primary"
               >
                 ارسال مجدد کد
               </Button>
             )}
 
             {devCode ? (
-              <div className="rounded-xl bg-muted p-3 text-center text-sm text-muted-foreground">
+              <div className="mt-auto mb-8 rounded-2xl bg-card p-4 text-center text-sm text-muted-foreground">
                 <p>
                   کد آزمایشی (فقط در حالت توسعه):{" "}
                   <bdi dir="ltr" className="font-bold text-foreground">
@@ -220,7 +234,7 @@ export default function LoginPage() {
                     setCode(devCode);
                     void verify(devCode);
                   }}
-                  className="mt-1 font-medium underline underline-offset-4"
+                  className="mt-1 font-medium text-primary underline underline-offset-4"
                 >
                   پر کردن خودکار
                 </button>
