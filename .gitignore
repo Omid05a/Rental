@@ -17,3 +17,5 @@ backend/media/
 .vscode/
 .idea/
 .DS_Store
+
+backend/private_media/
