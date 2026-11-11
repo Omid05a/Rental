@@ -1,4 +1,4 @@
-import { Car } from "lucide-react";
+import "@fontsource/poppins/600.css";
 import type { ReactNode } from "react";
 
 export function PageShell({ children }: { children: ReactNode }) {
@@ -16,10 +16,14 @@ export function PageShell({ children }: { children: ReactNode }) {
 export function BrandMark() {
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="flex size-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-        <Car className="size-8" strokeWidth={2.25} />
-      </div>
-      <span className="text-2xl font-extrabold text-primary">رنتال</span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/images/logo-mark.svg" alt="" className="h-20 w-auto" />
+      <span
+        className="text-2xl font-semibold tracking-[0.18em] text-primary"
+        style={{ fontFamily: "Poppins, system-ui, sans-serif" }}
+      >
+        RENTAL
+      </span>
     </div>
   );
 }
