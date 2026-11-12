@@ -42,7 +42,7 @@ class Vehicle(models.Model):
     year = models.PositiveSmallIntegerField(
         null=True,
         blank=True,
-        validators=[MinValueValidator(1950), MaxValueValidator(2100)],
+        validators=[MinValueValidator(1300), MaxValueValidator(1450)],
     )
     description = models.TextField(blank=True)
 
