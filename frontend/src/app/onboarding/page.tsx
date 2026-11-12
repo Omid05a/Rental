@@ -38,7 +38,7 @@ export default function OnboardingPage() {
         body: JSON.stringify({ first_name: first, last_name: last }),
       });
       updateUser(updated);
-      router.replace("/profile");
+      router.replace("/explore");
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {

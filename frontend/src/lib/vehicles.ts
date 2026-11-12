@@ -79,3 +79,26 @@ export const APPROVAL: Record<
 // Production years use the Solar Hijri (Persian) calendar, e.g. 1399.
 export const YEAR_MIN = 1300;
 export const YEAR_MAX = 1450;
+
+// Item returned by the public search endpoint (GET /vehicles/).
+export type PublicVehicle = {
+  id: number;
+  kind: VehicleKind;
+  title: string;
+  brand: string;
+  model_name: string;
+  price_per_hour: number;
+  price_per_day: number;
+  latitude: number;
+  longitude: number;
+  address: string;
+  cover: string | null;
+  distance_m: number | null;
+};
+
+export type Paginated<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
