@@ -18,13 +18,17 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.gis",
+    "django.contrib.postgres",
     # Third-party
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
+    "drf_spectacular_sidecar",
     # Local apps
     "apps.users",
     "apps.vehicles",
+    "apps.payments",
+    "apps.bookings",
 ]
 
 MIDDLEWARE = [
@@ -102,6 +106,10 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Rental API",
     "DESCRIPTION": "Peer-to-peer rental platform for cars and bicycles",
     "VERSION": "0.1.0",
+    # Serve the Swagger UI files from this server instead of a public CDN.
+    "SWAGGER_UI_DIST": "SIDECAR",
+    "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
+    "REDOC_DIST": "SIDECAR",
 }
 
 CORS_ALLOWED_ORIGINS = [
@@ -117,6 +125,15 @@ SIMPLE_JWT = {
 OTP_EXPIRY_SECONDS = 120
 OTP_RESEND_SECONDS = 60
 OTP_MAX_ATTEMPTS = 5
+
+# Booking rules
+BOOKING_BUFFER_MINUTES = 30
+BOOKING_MIN_HOURS = 1
+BOOKING_MAX_DAYS = 14
+BOOKING_MAX_ADVANCE_DAYS = 90
+CANCEL_FREE_HOURS = 24
+CANCEL_LATE_FEE_PERCENT = 50
+COMMISSION_PERCENT = 15
 
 # Admin theme settings
 UNFOLD = {
