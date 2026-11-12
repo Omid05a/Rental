@@ -75,3 +75,7 @@ export const APPROVAL: Record<
     className: "bg-red-500/15 text-red-400",
   },
 };
+
+// Production years use the Solar Hijri (Persian) calendar, e.g. 1399.
+export const YEAR_MIN = 1300;
+export const YEAR_MAX = 1450;

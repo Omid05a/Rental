@@ -24,6 +24,8 @@ import {
   FUEL_LABEL,
   KIND_LABEL,
   TRANSMISSION_LABEL,
+  YEAR_MAX,
+  YEAR_MIN,
   type FuelType,
   type Transmission,
   type Vehicle,
@@ -98,8 +100,11 @@ function validate(form: FormState, point: LatLng | null) {
   }
   if (!form.brand.trim()) errors.brand = "برند را وارد کنید.";
   if (!form.model_name.trim()) errors.model_name = "مدل را وارد کنید.";
-  if (form.year && (Number(form.year) < 1950 || Number(form.year) > 2100)) {
-    errors.year = "سال ساخت معتبر نیست.";
+  if (
+    form.year &&
+    (Number(form.year) < YEAR_MIN || Number(form.year) > YEAR_MAX)
+  ) {
+    errors.year = "سال ساخت را به شمسی وارد کنید (مثلاً ۱۳۹۹).";
   }
   if (!hourly) errors.price_per_hour = "قیمت ساعتی را وارد کنید.";
   if (!daily) {
@@ -286,14 +291,14 @@ export default function NewVehiclePage() {
             </div>
 
             <Field
-              label="سال ساخت (اختیاری)"
+              label="سال ساخت (شمسی، اختیاری)"
               htmlFor="year"
               error={errors.year}
             >
               <DigitsInput
                 id="year"
                 maxLength={4}
-                placeholder="مثلاً ۲۰۱۸"
+                placeholder="مثلاً ۱۳۹۹"
                 value={form.year}
                 onChange={(value) => set("year", value)}
               />
