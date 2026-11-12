@@ -43,7 +43,7 @@ export default function LoginPage() {
   // Single place that decides where a signed-in user goes.
   useEffect(() => {
     if (ready && user) {
-      router.replace(user.first_name ? "/profile" : "/onboarding");
+      router.replace(user.first_name ? "/explore" : "/onboarding");
     }
   }, [ready, user, router]);
 

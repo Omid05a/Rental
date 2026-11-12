@@ -24,3 +24,23 @@ export function formatCountdown(totalSeconds: number): string {
 export function formatToman(amount: number): string {
   return `${new Intl.NumberFormat("fa-IR").format(amount)} تومان`;
 }
+
+export function formatPriceShort(amount: number): string {
+  const fa = (value: number, digits: number) =>
+    new Intl.NumberFormat("fa-IR", { maximumFractionDigits: digits }).format(
+      value,
+    );
+  if (amount >= 1_000_000) return `${fa(amount / 1_000_000, 1)} میلیون`;
+  if (amount >= 1_000) return `${fa(amount / 1_000, 0)} هزار`;
+  return fa(amount, 0);
+}
+
+export function formatDistance(meters: number): string {
+  if (meters < 1000) {
+    return `${toFa(Math.max(10, Math.round(meters / 10) * 10))} متر`;
+  }
+  const km = new Intl.NumberFormat("fa-IR", { maximumFractionDigits: 1 }).format(
+    meters / 1000,
+  );
+  return `${km} کیلومتر`;
+}
