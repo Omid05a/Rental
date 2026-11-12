@@ -211,8 +211,11 @@ export default function VehicleDetail() {
                   </span>
                 </p>
               </div>
-              <Button disabled className="h-12 rounded-full px-8 font-bold">
-                رزرو (به‌زودی)
+              <Button
+                onClick={() => router.push(`/vehicles/${id}/book`)}
+                className="h-12 rounded-full px-8 font-bold"
+              >
+                رزرو
               </Button>
             </div>
           </>
