@@ -12,7 +12,7 @@ export default function Home() {
   useEffect(() => {
     if (!ready) return;
     if (user) {
-      router.replace(user.first_name ? "/profile" : "/onboarding");
+      router.replace(user.first_name ? "/explore" : "/onboarding");
       return;
     }
     let seen = false;
