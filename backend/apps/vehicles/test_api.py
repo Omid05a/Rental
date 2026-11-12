@@ -50,7 +50,7 @@ def make_vehicle(owner, coords=TEHRAN, **overrides):
         "title": "Peugeot 206",
         "brand": "Peugeot",
         "model_name": "206",
-        "year": 2018,
+        "year": 1397,
         "transmission": "manual",
         "fuel_type": "gasoline",
         "seats": 5,
@@ -72,7 +72,7 @@ def car_payload(**extra):
         "title": "Peugeot 206",
         "brand": "Peugeot",
         "model_name": "206",
-        "year": 2018,
+        "year": 1397,
         "transmission": "manual",
         "fuel_type": "gasoline",
         "seats": 5,
@@ -134,6 +134,16 @@ class OwnerApiTests(APITestCase):
         response = self.create(car_payload(insurance_expiry=yesterday))
         self.assertEqual(response.status_code, 400)
         self.assertIn("insurance_expiry", response.data)
+
+    def test_year_accepts_solar_hijri(self):
+        response = self.create(car_payload(year=1399))
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["year"], 1399)
+
+    def test_year_rejects_gregorian(self):
+        response = self.create(car_payload(year=2018))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("year", response.data)
 
     def test_bike_ignores_car_only_fields(self):
         payload = car_payload(kind="bike", title="City bike")
