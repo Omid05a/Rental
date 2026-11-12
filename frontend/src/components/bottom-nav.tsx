@@ -1,11 +1,12 @@
 "use client";
 
-import { Compass, User } from "lucide-react";
+import { CalendarClock, Compass, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
   { href: "/explore", label: "جستجو", icon: Compass },
+  { href: "/bookings", label: "رزروها", icon: CalendarClock },
   { href: "/profile", label: "پروفایل", icon: User },
 ];
 
