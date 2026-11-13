@@ -2,9 +2,11 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,7 +21,13 @@ from .serializers import (
     BookingCreateSerializer,
     BookingSerializer,
     CancelSerializer,
+    DamageCreateSerializer,
+    DamageRespondSerializer,
+    EndTripSerializer,
+    ExtendSerializer,
     QuoteRequestSerializer,
+    StartTripSerializer,
+    TripPhotoSerializer,
 )
 from .services import (
     BookingError,
@@ -30,6 +38,16 @@ from .services import (
     is_slot_free,
 )
 from .terms import TERMS, TERMS_VERSION
+from .trip_services import (
+    create_damage_report,
+    end_trip,
+    extend_trip,
+    release_due_deposits,
+    respond_damage,
+    save_photo,
+    start_trip,
+)
+from .trips import qr_code_for_vehicle
 
 
 def error_response(exc):
@@ -38,9 +56,18 @@ def error_response(exc):
 
 
 def booking_queryset():
-    return Booking.objects.select_related(
-        "vehicle", "vehicle__owner", "renter"
-    ).prefetch_related("vehicle__photos")
+    return (
+        Booking.objects.select_related(
+            "vehicle", "vehicle__owner", "renter", "damage_report"
+        )
+        .prefetch_related("vehicle__photos", "photos")
+    )
+
+
+def booking_response(request, booking_id, status=200):
+    booking = booking_queryset().get(pk=booking_id)
+    data = BookingSerializer(booking, context={"request": request}).data
+    return Response(data, status=status)
 
 
 def public_vehicle(pk):
@@ -136,6 +163,8 @@ class BookingListCreateView(APIView):
 
     @extend_schema(responses={200: BookingSerializer(many=True)})
     def get(self, request):
+        release_due_deposits(user=request.user)
+
         queryset = booking_queryset()
         if request.query_params.get("role") == "owner":
             queryset = queryset.filter(vehicle__owner=request.user)
@@ -171,11 +200,7 @@ class BookingListCreateView(APIView):
         except BookingError as exc:
             return error_response(exc)
 
-        booking = booking_queryset().get(pk=booking.pk)
-        return Response(
-            BookingSerializer(booking, context={"request": request}).data,
-            status=201 if created else 200,
-        )
+        return booking_response(request, booking.pk, status=201 if created else 200)
 
 
 class BookingDetailView(APIView):
@@ -183,6 +208,7 @@ class BookingDetailView(APIView):
 
     @extend_schema(responses={200: BookingSerializer})
     def get(self, request, pk):
+        release_due_deposits(user=request.user)
         queryset = booking_queryset().filter(
             Q(renter=request.user) | Q(vehicle__owner=request.user)
         )
@@ -207,5 +233,178 @@ class BookingCancelView(APIView):
         except BookingError as exc:
             return error_response(exc)
 
-        booking = booking_queryset().get(pk=booking.pk)
-        return Response(BookingSerializer(booking, context={"request": request}).data)
+        return booking_response(request, booking.pk)
+
+
+# ------------------------------------------------------------------ trip
+
+
+class TripPhotoView(APIView):
+    """Uploads (or replaces) one inspection or damage photo."""
+
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    @extend_schema(request=TripPhotoSerializer, responses={201: None})
+    def post(self, request, pk):
+        serializer = TripPhotoSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            photo = save_photo(
+                booking_id=pk,
+                user=request.user,
+                phase=data["phase"],
+                angle=data["angle"],
+                image=data["image"],
+                latitude=data.get("latitude"),
+                longitude=data.get("longitude"),
+            )
+        except BookingError as exc:
+            return error_response(exc)
+
+        return Response(
+            {
+                "id": photo.pk,
+                "phase": photo.phase,
+                "angle": photo.angle,
+                "image": request.build_absolute_uri(photo.image.url),
+                "taken_at": photo.taken_at,
+            },
+            status=201,
+        )
+
+
+class StartTripView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=StartTripSerializer, responses={200: BookingSerializer})
+    def post(self, request, pk):
+        serializer = StartTripSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            start_trip(
+                booking_id=pk,
+                user=request.user,
+                qr_code=data["qr_code"],
+                latitude=data["latitude"],
+                longitude=data["longitude"],
+                fuel_percent=data.get("fuel_percent"),
+            )
+        except BookingError as exc:
+            return error_response(exc)
+
+        return booking_response(request, pk)
+
+
+class ExtendTripView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=ExtendSerializer, responses={200: BookingSerializer})
+    def post(self, request, pk):
+        serializer = ExtendSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            extend_trip(
+                booking_id=pk,
+                user=request.user,
+                hours=serializer.validated_data["hours"],
+                idempotency_key=get_idempotency_key(request),
+            )
+        except BookingError as exc:
+            return error_response(exc)
+
+        return booking_response(request, pk)
+
+
+class EndTripView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=EndTripSerializer, responses={200: BookingSerializer})
+    def post(self, request, pk):
+        serializer = EndTripSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            end_trip(
+                booking_id=pk,
+                user=request.user,
+                latitude=data["latitude"],
+                longitude=data["longitude"],
+                fuel_percent=data.get("fuel_percent"),
+            )
+        except BookingError as exc:
+            return error_response(exc)
+
+        return booking_response(request, pk)
+
+
+class DamageReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=DamageCreateSerializer, responses={201: BookingSerializer})
+    def post(self, request, pk):
+        serializer = DamageCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            create_damage_report(
+                booking_id=pk,
+                user=request.user,
+                description=data["description"],
+                claimed_amount=data["claimed_amount"],
+            )
+        except BookingError as exc:
+            return error_response(exc)
+
+        return booking_response(request, pk, status=201)
+
+
+class DamageRespondView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=DamageRespondSerializer, responses={200: BookingSerializer})
+    def post(self, request, pk):
+        serializer = DamageRespondSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            respond_damage(
+                booking_id=pk,
+                user=request.user,
+                note=serializer.validated_data["note"],
+            )
+        except BookingError as exc:
+            return error_response(exc)
+
+        return booking_response(request, pk)
+
+
+class MyVehicleQrView(APIView):
+    """The signed code the owner prints and sticks on the vehicle."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: None})
+    def get(self, request, pk):
+        vehicle = get_object_or_404(Vehicle, pk=pk, owner=request.user)
+        return Response({"qr_code": qr_code_for_vehicle(vehicle.pk)})
+
+
+class DevQrView(APIView):
+    """Development only: lets the demo skip scanning a real QR sticker."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: None})
+    def get(self, request, pk):
+        if not settings.DEBUG:
+            raise Http404()
+        booking = get_object_or_404(Booking, pk=pk, renter=request.user)
+        return Response({"qr_code": qr_code_for_vehicle(booking.vehicle_id)})
