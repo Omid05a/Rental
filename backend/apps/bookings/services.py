@@ -44,13 +44,16 @@ def validate_period(start_at, end_at, now=None):
         raise BookingError("duration_too_long", "The rental is too long.")
 
 
-def is_slot_free(vehicle_id, start_at, blocked_until):
-    return not Booking.objects.filter(
+def is_slot_free(vehicle_id, start_at, blocked_until, exclude_id=None):
+    queryset = Booking.objects.filter(
         vehicle_id=vehicle_id,
         status__in=BLOCKING_STATUSES,
         start_at__lt=blocked_until,
         blocked_until__gt=start_at,
-    ).exists()
+    )
+    if exclude_id is not None:
+        queryset = queryset.exclude(pk=exclude_id)
+    return not queryset.exists()
 
 
 def build_quote(vehicle, start_at, end_at, renter=None, now=None):
@@ -127,6 +130,11 @@ def create_booking(
                 rental_amount=quote["rental_amount"],
                 deposit_amount=quote["deposit_amount"],
                 total_paid=quote["total"],
+                deposit_status=(
+                    Booking.DepositStatus.HELD
+                    if quote["deposit_amount"]
+                    else Booking.DepositStatus.NONE
+                ),
                 terms_version=terms_version,
                 terms_accepted_at=timezone.now(),
                 idempotency_key=idempotency_key,
@@ -229,5 +237,10 @@ def cancel_booking(*, booking_id, user, reason=""):
     booking.cancellation_fee = fee
     booking.refund_amount = refund
     booking.platform_fee = platform_fee
+    booking.deposit_status = (
+        Booking.DepositStatus.RELEASED
+        if booking.deposit_amount
+        else Booking.DepositStatus.NONE
+    )
     booking.save()
     return booking

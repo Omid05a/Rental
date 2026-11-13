@@ -146,3 +146,15 @@ UNFOLD = {
     "SITE_HEADER": "Rental",
     "SITE_SYMBOL": "key",
 }
+
+# Trip rules
+TRIP_EARLY_START_MINUTES = 15
+TRIP_RADIUS_TOLERANCE_M = 50
+LATE_GRACE_MINUTES = 10
+LATE_FEE_MULTIPLIER_PERCENT = 150
+FUEL_TOLERANCE_PERCENT = 5
+FUEL_FEE_PER_PERCENT = 20_000
+FUEL_SERVICE_FEE = 100_000
+MAX_DAMAGE_PHOTOS = 6
+# Hours during which the owner may report damage (set a small value for demos).
+DAMAGE_WINDOW_HOURS = float(os.environ.get("DAMAGE_WINDOW_HOURS", "24"))
