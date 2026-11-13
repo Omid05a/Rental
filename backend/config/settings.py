@@ -112,9 +112,14 @@ SPECTACULAR_SETTINGS = {
     "REDOC_DIST": "SIDECAR",
 }
 
+from corsheaders.defaults import default_headers
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+
+# Allow the custom header used for idempotent payments and bookings.
+CORS_ALLOW_HEADERS = (*default_headers, "idempotency-key")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),

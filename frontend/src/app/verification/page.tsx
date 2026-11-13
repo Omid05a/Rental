@@ -70,10 +70,19 @@ export default function VerificationPage() {
   }, [authFetch]);
 
   useEffect(() => {
-    if (ready && user) {
-      void load();
-    }
-  }, [ready, user, load]);
+    if (!ready || !user) return;
+    let active = true;
+    authFetch<DocumentsResponse>("/verification/documents/")
+      .then((result) => {
+        if (active) setData(result);
+      })
+      .catch((err) => {
+        if (active) setError(getErrorMessage(err));
+      });
+    return () => {
+      active = false;
+    };
+  }, [ready, user, authFetch]);
 
   async function handleFile(
     docType: DocType,
