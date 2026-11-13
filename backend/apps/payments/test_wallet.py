@@ -51,3 +51,15 @@ class LedgerTests(TestCase):
         with self.assertRaises(InsufficientFunds):
             apply_transaction(user, -200_000, WalletTransaction.Kind.BOOKING_CHARGE)
         self.assertEqual(Wallet.objects.get(user=user).balance, 100_000)
+
+class CorsTests(APITestCase):
+    def test_preflight_allows_idempotency_key(self):
+        response = self.client.options(
+            "/api/wallet/topup/",
+            HTTP_ORIGIN="http://localhost:3000",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="authorization,content-type,idempotency-key",
+        )
+        self.assertEqual(response.status_code, 200)
+        allowed = response["Access-Control-Allow-Headers"].lower()
+        self.assertIn("idempotency-key", allowed)
