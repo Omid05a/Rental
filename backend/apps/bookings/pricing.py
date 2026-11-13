@@ -29,3 +29,31 @@ def cancellation_fee(*, rental_amount, price_per_day, start_at, now):
 
 def platform_share(amount):
     return amount * settings.COMMISSION_PERCENT // 100
+
+
+
+def billable_late_minutes(end_at, ended_at):
+    """Minutes late after the grace period (0 when returned on time)."""
+    seconds = int((ended_at - end_at).total_seconds())
+    if seconds <= 0:
+        return 0
+    minutes = -(-seconds // 60)
+    return max(0, minutes - settings.LATE_GRACE_MINUTES)
+
+
+def late_fee_amount(late_minutes, price_per_hour):
+    """Every started late hour costs a multiple of the hourly price."""
+    if late_minutes <= 0:
+        return 0
+    hours = -(-late_minutes // 60)
+    return hours * price_per_hour * settings.LATE_FEE_MULTIPLIER_PERCENT // 100
+
+
+def fuel_fee_amount(start_percent, end_percent):
+    """Fee for returning with less fuel (or charge) than at the start."""
+    if start_percent is None or end_percent is None:
+        return 0
+    shortage = start_percent - end_percent
+    if shortage <= settings.FUEL_TOLERANCE_PERCENT:
+        return 0
+    return shortage * settings.FUEL_FEE_PER_PERCENT + settings.FUEL_SERVICE_FEE
