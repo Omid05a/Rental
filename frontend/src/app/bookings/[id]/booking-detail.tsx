@@ -3,8 +3,10 @@
 import { ArrowRight, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { DamageSection } from "@/components/damage-section";
+import { InspectionCompare } from "@/components/inspection-compare";
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +48,10 @@ export default function BookingDetail() {
   const [confirming, setConfirming] = useState(false);
   const [reason, setReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
+
+  const reload = useCallback(async () => {
+    setBooking(await authFetch<Booking>(`/bookings/${id}/`));
+  }, [authFetch, id]);
 
   useEffect(() => {
     if (!ready || !user) return;
@@ -258,6 +264,14 @@ export default function BookingDetail() {
                 ) : null}
               </section>
             ) : null}
+
+            <InspectionCompare
+              angles={booking.trip.required_angles}
+              start={booking.trip.start_photos}
+              end={booking.trip.end_photos}
+            />
+
+            <DamageSection booking={booking} onChanged={reload} />
 
             {booking.status === "cancelled" && booking.cancel_reason ? (
               <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground">
