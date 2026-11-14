@@ -119,9 +119,14 @@ class VehicleAdmin(ModelAdmin):
 
     @action(description="Approve selected vehicles")
     def approve_selected(self, request, queryset):
-        updated = queryset.update(
-            approval_status=Vehicle.ApprovalStatus.APPROVED, rejection_reason=""
-        )
+        approved = 0
+        for vehicle in queryset:
+            vehicle.approval_status = Vehicle.ApprovalStatus.APPROVED
+            vehicle.rejection_reason = ""
+            vehicle.save(
+                update_fields=["approval_status", "rejection_reason", "updated_at"]
+            )
+            approved += 1
         self.message_user(
-            request, f"{updated} vehicle(s) approved.", messages.SUCCESS
+            request, f"{approved} vehicle(s) approved.", messages.SUCCESS
         )
