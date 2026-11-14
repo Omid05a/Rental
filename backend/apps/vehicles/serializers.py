@@ -139,8 +139,27 @@ class VehicleSerializer(DistanceMixin, serializers.ModelSerializer):
                 {"latitude": "Send latitude and longitude together."}
             )
         if latitude is not None:
+            moved = (
+                abs(latitude - instance.latitude) > 1e-6
+                or abs(longitude - instance.longitude) > 1e-6
+            )
+            if moved and self._has_open_bookings(instance):
+                raise serializers.ValidationError(
+                    {
+                        "latitude": "The location cannot change while the vehicle "
+                        "has upcoming or active bookings."
+                    }
+                )
             instance.location = Point(longitude, latitude, srid=4326)
         return super().update(instance, validated_data)
+
+    @staticmethod
+    def _has_open_bookings(instance):
+        from apps.bookings.models import Booking
+
+        return Booking.objects.filter(
+            vehicle=instance, status__in=["confirmed", "active"]
+        ).exists()
 
 
 class VehicleListSerializer(DistanceMixin, serializers.ModelSerializer):

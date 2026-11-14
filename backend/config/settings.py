@@ -29,6 +29,8 @@ INSTALLED_APPS = [
     "apps.vehicles",
     "apps.payments",
     "apps.bookings",
+    "apps.notifications",
+    "apps.reviews",
 ]
 
 MIDDLEWARE = [
@@ -158,3 +160,6 @@ FUEL_SERVICE_FEE = 100_000
 MAX_DAMAGE_PHOTOS = 6
 # Hours during which the owner may report damage (set a small value for demos).
 DAMAGE_WINDOW_HOURS = float(os.environ.get("DAMAGE_WINDOW_HOURS", "24"))
+
+# Reviews
+REVIEW_WINDOW_DAYS = 14
