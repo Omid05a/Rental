@@ -197,6 +197,14 @@ export default function ManageVehiclePage() {
               ) : null}
             </section>
 
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/vehicles/mine/${id}/qr`)}
+              className="h-12 rounded-full border-border bg-card font-medium"
+            >
+              مشاهده و چاپ QR وسیله
+            </Button>
+            
             <section className="flex flex-col gap-3">
               <div className="flex items-center justify-between px-2">
                 <h2 className="font-semibold">عکس‌ها</h2>
