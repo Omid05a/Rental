@@ -9,7 +9,7 @@ import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRequireAuth } from "@/lib/auth";
-import { BOOKING_STATUS, type Booking } from "@/lib/bookings";
+import { BOOKING_STATUS, DEPOSIT_STATUS, type Booking } from "@/lib/bookings";
 import { getErrorMessage } from "@/lib/errors";
 import { formatToman, toFa } from "@/lib/format";
 import { formatJalaliDateTime } from "@/lib/jalali";
@@ -85,6 +85,10 @@ export default function BookingDetail() {
 
   const status = booking ? BOOKING_STATUS[booking.status] : null;
   const isRenter = booking?.role === "renter";
+  const showTripCard =
+    isRenter &&
+    booking &&
+    (booking.status === "confirmed" || booking.status === "active");
 
   return (
     <PageShell>
@@ -136,14 +140,30 @@ export default function BookingDetail() {
               </Link>
             </section>
 
+            {showTripCard ? (
+              <section className="flex flex-col gap-3 rounded-3xl bg-primary/10 p-5">
+                <h3 className="font-semibold">سفر</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {booking.status === "active"
+                    ? "سفر در حال انجام است. از اینجا می‌توانید تمدید کنید یا سفر را پایان دهید."
+                    : booking.trip.can_start
+                      ? "می‌توانید از وسیله عکس بگیرید، قفل را باز کنید و سفر را شروع کنید."
+                      : `شروع سفر از ${formatJalaliDateTime(booking.trip.start_window_opens_at)} امکان‌پذیر است.`}
+                </p>
+                <Button
+                  onClick={() => router.push(`/bookings/${id}/trip`)}
+                  className="h-12 rounded-full font-bold"
+                >
+                  {booking.status === "active" ? "ادامه سفر" : "شروع سفر"}
+                </Button>
+              </section>
+            ) : null}
+
             <section className="rounded-3xl bg-card px-5 py-2">
               <dl className="divide-y divide-border">
                 <Row label="شروع" value={formatJalaliDateTime(booking.start_at)} />
                 <Row label="پایان" value={formatJalaliDateTime(booking.end_at)} />
-                <Row
-                  label="مدت"
-                  value={`${toFa(booking.hours)} ساعت`}
-                />
+                <Row label="مدت" value={`${toFa(booking.hours)} ساعت`} />
                 <Row
                   label={isRenter ? "مالک" : "اجاره‌کننده"}
                   value={booking.counterpart.first_name || "کاربر رنتال"}
@@ -181,9 +201,7 @@ export default function BookingDetail() {
                     <Row
                       label="لغو توسط"
                       value={
-                        booking.cancelled_by === "owner"
-                          ? "مالک"
-                          : "اجاره‌کننده"
+                        booking.cancelled_by === "owner" ? "مالک" : "اجاره‌کننده"
                       }
                     />
                     <Row
@@ -198,6 +216,48 @@ export default function BookingDetail() {
                 ) : null}
               </dl>
             </section>
+
+            {booking.status === "completed" ? (
+              <section className="rounded-3xl bg-card px-5 py-2">
+                <dl className="divide-y divide-border">
+                  <Row
+                    label="زمان پایان سفر"
+                    value={
+                      booking.ended_at
+                        ? formatJalaliDateTime(booking.ended_at)
+                        : "—"
+                    }
+                  />
+                  <Row
+                    label="جریمه تأخیر"
+                    value={formatToman(booking.late_fee)}
+                  />
+                  {booking.vehicle.kind === "car" ? (
+                    <Row
+                      label="جریمه کمبود بنزین"
+                      value={formatToman(booking.fuel_fee)}
+                    />
+                  ) : null}
+                  {booking.damage_deduction > 0 ? (
+                    <Row
+                      label="کسر بابت خسارت"
+                      value={formatToman(booking.damage_deduction)}
+                    />
+                  ) : null}
+                  <Row
+                    label="وضعیت سپرده"
+                    value={DEPOSIT_STATUS[booking.deposit_status]}
+                  />
+                </dl>
+                {booking.deposit_status === "held" &&
+                booking.deposit_release_at ? (
+                  <p className="pb-3 text-xs leading-relaxed text-muted-foreground">
+                    سپرده تا {formatJalaliDateTime(booking.deposit_release_at)}{" "}
+                    نگه داشته می‌شود.
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
 
             {booking.status === "cancelled" && booking.cancel_reason ? (
               <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground">

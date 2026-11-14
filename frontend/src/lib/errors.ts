@@ -22,15 +22,43 @@ const MESSAGES: Record<string, string> = {
   vehicle_not_found: "این وسیله دیگر در دسترس نیست.",
   not_cancellable: "این رزرو قابل لغو نیست.",
   already_started: "زمان اجاره شروع شده و قابل لغو نیست.",
+  too_early: "هنوز زمان شروع این سفر نرسیده است.",
+  too_late: "زمان این رزرو به پایان رسیده است.",
+  not_startable: "این رزرو قابل شروع نیست.",
+  not_active: "سفر در حال انجام نیست.",
+  inspection_incomplete: "ابتدا از همه زاویه‌ها عکس بگیرید.",
+  invalid_qr: "کد QR با این وسیله مطابقت ندارد.",
+  too_far: "شما از وسیله دور هستید. نزدیک وسیله بروید و دوباره تلاش کنید.",
+  outside_return_area: "برای پایان سفر، وسیله را به محل تحویل برگردانید.",
+  fuel_required: "سطح بنزین یا شارژ را وارد کنید.",
+  vehicle_in_use: "وسیله هنوز توسط اجاره‌کننده قبلی برگردانده نشده است.",
+  extension_blocked: "بعد از رزرو شما، رزرو دیگری ثبت شده و تمدید ممکن نیست.",
+  extension_too_short: "این مقدار تمدید برای جبران زمان گذشته کافی نیست.",
+  forbidden: "شما اجازه این کار را ندارید.",
+  invalid_angle: "این زاویه برای این وسیله مجاز نیست.",
+  report_closed: "مهلت گزارش خسارت تمام شده است.",
+  already_reported: "برای این رزرو قبلاً گزارش ثبت شده است.",
+  no_open_report: "گزارش بازی وجود ندارد.",
+  no_deposit_left: "سپرده‌ای برای مطالبه باقی نمانده است.",
+  claim_too_high: "مبلغ مطالبه بیشتر از سپرده باقی‌مانده است.",
 };
 
 export function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     const data = error.data;
     if (data && typeof data === "object") {
-      const { code } = data as { code?: string };
+      const { code, distance_m: distance } = data as {
+        code?: string;
+        distance_m?: number;
+      };
       if (code && MESSAGES[code]) {
-        return MESSAGES[code];
+        const showDistance =
+          (code === "too_far" || code === "outside_return_area") &&
+          typeof distance === "number";
+        const extra = showDistance
+          ? ` (حدود ${new Intl.NumberFormat("fa-IR").format(Math.round(distance))} متر فاصله)`
+          : "";
+        return MESSAGES[code] + extra;
       }
       if ("phone" in data) {
         return "شماره موبایل معتبر نیست. نمونه: ۰۹۱۲۳۴۵۶۷۸۹";
@@ -40,6 +68,9 @@ export function getErrorMessage(error: unknown): string {
       }
       if ("amount" in data) {
         return "مبلغ باید بین ۱۰ هزار تا ۱۰۰ میلیون تومان باشد.";
+      }
+      if ("fuel_percent" in data) {
+        return "سطح بنزین یا شارژ باید عددی بین ۰ تا ۱۰۰ باشد.";
       }
     }
     return "مشکلی پیش آمد. دوباره تلاش کنید.";

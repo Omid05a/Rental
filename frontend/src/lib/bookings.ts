@@ -2,6 +2,41 @@ import type { VehicleKind } from "@/lib/vehicles";
 
 export type BookingStatus = "confirmed" | "active" | "completed" | "cancelled";
 
+export type Angle = "front" | "rear" | "left" | "right" | "dashboard";
+
+export type TripPhoto = {
+  angle: Angle | "damage";
+  image: string;
+  taken_at: string;
+};
+
+export type TripInfo = {
+  required_angles: Angle[];
+  start_photos: TripPhoto[];
+  end_photos: TripPhoto[];
+  start_photos_done: boolean;
+  end_photos_done: boolean;
+  start_window_opens_at: string;
+  can_start: boolean;
+  can_extend: boolean;
+  can_end: boolean;
+  late_fee_now: number;
+  fuel_fee_now: number;
+  needs_fuel: boolean;
+  can_report_damage: boolean;
+};
+
+export type DamageInfo = {
+  description: string;
+  claimed_amount: number;
+  renter_response: string;
+  status: "open" | "resolved";
+  approved_amount: number;
+  resolution_note: string;
+  created_at: string;
+  photos: TripPhoto[];
+};
+
 export type Booking = {
   id: number;
   status: BookingStatus;
@@ -15,6 +50,7 @@ export type Booking = {
     address: string;
     latitude: number;
     longitude: number;
+    pickup_radius_m: number;
     cover: string | null;
   };
   counterpart: { first_name: string; phone: string };
@@ -33,6 +69,18 @@ export type Booking = {
   cancel_reason: string;
   cancellation_fee: number;
   refund_amount: number;
+  started_at: string | null;
+  ended_at: string | null;
+  start_fuel_percent: number | null;
+  end_fuel_percent: number | null;
+  late_minutes: number;
+  late_fee: number;
+  fuel_fee: number;
+  damage_deduction: number;
+  deposit_status: "none" | "held" | "released";
+  deposit_release_at: string | null;
+  trip: TripInfo;
+  damage: DamageInfo | null;
   created_at: string;
 };
 
@@ -88,5 +136,20 @@ export const TRANSACTION_LABEL: Record<WalletTransaction["kind"], string> = {
   booking_charge: "هزینه اجاره",
   deposit_hold: "سپرده",
   refund: "بازپرداخت",
-  payout: "دریافتی از لغو رزرو",
+  payout: "دریافتی",
+};
+
+export const ANGLE_LABEL: Record<Angle | "damage", string> = {
+  front: "جلو",
+  rear: "عقب",
+  left: "سمت چپ",
+  right: "سمت راست",
+  dashboard: "داشبورد",
+  damage: "خسارت",
+};
+
+export const DEPOSIT_STATUS: Record<Booking["deposit_status"], string> = {
+  none: "بدون سپرده",
+  held: "نگه‌داری‌شده",
+  released: "بازگردانده‌شده",
 };
