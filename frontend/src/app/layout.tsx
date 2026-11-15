@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "@fontsource-variable/vazirmatn";
 import "./globals.css";
 import { DirectionProvider } from "@/components/ui/direction";
+import { UnreadProvider } from "@/components/unread-provider";
 import { AuthProvider } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -15,7 +16,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="fa" dir="rtl">
       <body>
         <DirectionProvider direction="rtl">
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <UnreadProvider>{children}</UnreadProvider>
+          </AuthProvider>
         </DirectionProvider>
       </body>
     </html>
