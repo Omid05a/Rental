@@ -110,6 +110,14 @@ export default function ProfilePage() {
         <Button
           variant="outline"
           className="h-14 rounded-full border-border bg-card text-base"
+          onClick={() => router.push("/earnings")}
+        >
+          گزارش درآمد
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-14 rounded-full border-border bg-card text-base"
           onClick={() => router.push("/vehicles/mine")}
         >
           وسایل من

@@ -5,9 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { PageShell } from "@/components/page-shell";
+import { RatingBadge, Stars } from "@/components/stars";
 import { Button } from "@/components/ui/button";
 import { ApiError, apiFetch } from "@/lib/api";
 import { formatToman, toFa } from "@/lib/format";
+import { formatJalaliDateTime } from "@/lib/jalali";
+import type { VehicleReviews } from "@/lib/social";
 import {
   FUEL_LABEL,
   KIND_LABEL,
@@ -20,6 +23,8 @@ type LoadState = {
   vehicle: Vehicle | null;
   error: string | null;
 };
+
+type ReviewsState = { id: string; data: VehicleReviews | null };
 
 function Chip({ children }: { children: string }) {
   return (
@@ -43,6 +48,7 @@ export default function VehicleDetail() {
   const id = params.id;
   const router = useRouter();
   const [state, setState] = useState<LoadState | null>(null);
+  const [reviewsState, setReviewsState] = useState<ReviewsState | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -66,8 +72,23 @@ export default function VehicleDetail() {
     };
   }, [id]);
 
+  useEffect(() => {
+    let active = true;
+    apiFetch<VehicleReviews>(`/vehicles/${id}/reviews/`)
+      .then((data) => {
+        if (active) setReviewsState({ id, data });
+      })
+      .catch(() => {
+        if (active) setReviewsState({ id, data: null });
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
   const current = state?.id === id ? state : null;
   const vehicle = current?.vehicle ?? null;
+  const reviews = reviewsState?.id === id ? reviewsState.data : null;
   const isCar = vehicle?.kind === "car";
   const Icon = vehicle?.kind === "bike" ? Bike : Car;
 
@@ -126,7 +147,13 @@ export default function VehicleDetail() {
 
             <div className="flex flex-col gap-3 px-6">
               <div>
-                <h2 className="text-lg font-bold">{vehicle.title}</h2>
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-lg font-bold">{vehicle.title}</h2>
+                  <RatingBadge
+                    avg={reviews?.avg ?? null}
+                    count={reviews?.count ?? 0}
+                  />
+                </div>
                 <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                   <MapPin className="size-4 shrink-0" />
                   {vehicle.address}
@@ -199,6 +226,35 @@ export default function VehicleDetail() {
                 مالک: {vehicle.owner_first_name || "کاربر رنتال"}
               </p>
             </section>
+
+            {reviews && reviews.count > 0 ? (
+              <section className="mx-6 flex flex-col gap-3 rounded-3xl bg-card p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-semibold">نظر اجاره‌کنندگان</h3>
+                  <RatingBadge avg={reviews.avg} count={reviews.count} />
+                </div>
+                <ul className="flex flex-col divide-y divide-border">
+                  {reviews.results.map((review) => (
+                    <li key={review.id} className="flex flex-col gap-1.5 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-sm font-medium">
+                          {review.author_first_name || "کاربر رنتال"}
+                        </span>
+                        <Stars value={review.rating} />
+                      </div>
+                      {review.comment ? (
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {review.comment}
+                        </p>
+                      ) : null}
+                      <span className="text-[11px] text-muted-foreground">
+                        {formatJalaliDateTime(review.created_at)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : null}
 
             <div className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md items-center justify-between gap-4 border-t border-border bg-background/95 px-6 py-4 backdrop-blur">
               <div>

@@ -93,6 +93,8 @@ export type PublicVehicle = {
   longitude: number;
   address: string;
   cover: string | null;
+  rating_avg: number | null;
+  rating_count: number;
   distance_m: number | null;
 };
 

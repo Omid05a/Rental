@@ -28,13 +28,16 @@ class VehiclePagination(PageNumberPagination):
 
 
 def public_vehicles():
-    return (
+    from .ratings import with_ratings
+
+    queryset = (
         Vehicle.objects.filter(
             approval_status=Vehicle.ApprovalStatus.APPROVED, is_active=True
         )
         .select_related("owner")
         .prefetch_related("photos")
     )
+    return with_ratings(queryset)
 
 
 def read_number(params, name, errors, cast=float):

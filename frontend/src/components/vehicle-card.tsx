@@ -1,6 +1,7 @@
 import { Bike, Car } from "lucide-react";
 import Link from "next/link";
 
+import { RatingBadge } from "@/components/stars";
 import { formatDistance, formatToman } from "@/lib/format";
 import { KIND_LABEL, type PublicVehicle } from "@/lib/vehicles";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,10 @@ export function VehicleCard({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <h3 className="truncate font-semibold">{vehicle.title}</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="truncate font-semibold">{vehicle.title}</h3>
+          <RatingBadge avg={vehicle.rating_avg} count={vehicle.rating_count} />
+        </div>
         <p className="truncate text-xs text-muted-foreground">
           {KIND_LABEL[vehicle.kind]} · {vehicle.brand} {vehicle.model_name}
         </p>

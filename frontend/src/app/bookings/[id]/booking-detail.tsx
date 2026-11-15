@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { DamageSection } from "@/components/damage-section";
 import { InspectionCompare } from "@/components/inspection-compare";
 import { PageShell } from "@/components/page-shell";
+import { ReviewSection } from "@/components/review-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRequireAuth } from "@/lib/auth";
@@ -272,6 +273,10 @@ export default function BookingDetail() {
             />
 
             <DamageSection booking={booking} onChanged={reload} />
+
+            {booking.status === "completed" ? (
+              <ReviewSection bookingId={booking.id} />
+            ) : null}
 
             {booking.status === "cancelled" && booking.cancel_reason ? (
               <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground">

@@ -112,3 +112,11 @@ export function toTehranIso(dateIso: string, hour: number, minute: number) {
 export function formatJalaliDateTime(value: string | Date) {
   return displayFormat.format(typeof value === "string" ? new Date(value) : value);
 }
+
+/** Solar Hijri year and month of a moment, as seen in Tehran. */
+export function jalaliYearMonth(value: string | Date) {
+  const { jy, jm } = persianParts(
+    typeof value === "string" ? new Date(value) : value,
+  );
+  return { jy, jm };
+}

@@ -148,3 +148,18 @@ class PublicRatingTests(ReviewTestCase):
         owner_view = self.state(booking.pk, headers=self.owner_auth)
         self.assertEqual(owner_view["counterpart_rating"]["count"], 0)
         self.assertIsNone(owner_view["counterpart_rating"]["avg"])
+
+    def test_public_list_includes_average_rating(self):
+        booking = self.finish_trip()
+        self.review(booking.pk, rating=4)
+
+        response = self.client.get("/api/vehicles/")
+        item = next(i for i in response.data["results"] if i["id"] == self.vehicle.pk)
+        self.assertEqual(item["rating_avg"], 4.0)
+        self.assertEqual(item["rating_count"], 1)
+
+    def test_unrated_vehicle_has_no_average(self):
+        response = self.client.get("/api/vehicles/")
+        item = next(i for i in response.data["results"] if i["id"] == self.vehicle.pk)
+        self.assertIsNone(item["rating_avg"])
+        self.assertEqual(item["rating_count"], 0)

@@ -41,6 +41,9 @@ const MESSAGES: Record<string, string> = {
   no_open_report: "گزارش بازی وجود ندارد.",
   no_deposit_left: "سپرده‌ای برای مطالبه باقی نمانده است.",
   claim_too_high: "مبلغ مطالبه بیشتر از سپرده باقی‌مانده است.",
+  not_completed: "فقط برای سفرهای پایان‌یافته می‌توانید نظر ثبت کنید.",
+  review_closed: "مهلت ثبت نظر برای این سفر تمام شده است.",
+  already_reviewed: "شما قبلاً برای این سفر نظر ثبت کرده‌اید.",
 };
 
 export function getErrorMessage(error: unknown): string {
