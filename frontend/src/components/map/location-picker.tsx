@@ -47,9 +47,15 @@ function FlyTo({ target }: { target: LatLng | null }) {
 type Props = {
   value: LatLng | null;
   onChange: (point: LatLng) => void;
+  /** Shows the pin without letting the user move it. */
+  readOnly?: boolean;
 };
 
-export default function LocationPicker({ value, onChange }: Props) {
+export default function LocationPicker({
+  value,
+  onChange,
+  readOnly = false,
+}: Props) {
   const [flyTarget, setFlyTarget] = useState<LatLng | null>(null);
   const [locating, setLocating] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -99,13 +105,13 @@ export default function LocationPicker({ value, onChange }: Props) {
             maxZoom={19}
             className="dark-tiles"
           />
-          <ClickHandler onPick={onChange} />
+          {readOnly ? null : <ClickHandler onPick={onChange} />}
           <FlyTo target={flyTarget} />
           {value ? (
             <Marker
               position={[value.lat, value.lng]}
               icon={pinIcon}
-              draggable
+              draggable={!readOnly}
               eventHandlers={{
                 dragend(event) {
                   const next = (event.target as L.Marker).getLatLng();
@@ -116,15 +122,17 @@ export default function LocationPicker({ value, onChange }: Props) {
           ) : null}
         </MapContainer>
 
-        <button
-          type="button"
-          onClick={locateMe}
-          disabled={locating}
-          className="absolute bottom-3 end-3 z-[1000] flex h-11 items-center gap-2 rounded-full bg-background/90 px-4 text-sm font-medium text-foreground shadow-lg disabled:opacity-60"
-        >
-          <LocateFixed className="size-4" />
-          {locating ? "در حال یافتن…" : "موقعیت من"}
-        </button>
+        {readOnly ? null : (
+          <button
+            type="button"
+            onClick={locateMe}
+            disabled={locating}
+            className="absolute bottom-3 end-3 z-[1000] flex h-11 items-center gap-2 rounded-full bg-background/90 px-4 text-sm font-medium text-foreground shadow-lg disabled:opacity-60"
+          >
+            <LocateFixed className="size-4" />
+            {locating ? "در حال یافتن…" : "موقعیت من"}
+          </button>
+        )}
       </div>
 
       {message ? (
