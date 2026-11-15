@@ -166,6 +166,8 @@ class VehicleListSerializer(DistanceMixin, serializers.ModelSerializer):
     latitude = serializers.FloatField(read_only=True)
     longitude = serializers.FloatField(read_only=True)
     cover = serializers.SerializerMethodField()
+    rating_avg = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Vehicle
@@ -181,6 +183,8 @@ class VehicleListSerializer(DistanceMixin, serializers.ModelSerializer):
             "longitude",
             "address",
             "cover",
+            "rating_avg",
+            "rating_count",
             "distance_m",
         )
         read_only_fields = fields
@@ -192,3 +196,10 @@ class VehicleListSerializer(DistanceMixin, serializers.ModelSerializer):
         url = photos[0].image.url
         request = self.context.get("request")
         return request.build_absolute_uri(url) if request else url
+
+    def get_rating_avg(self, obj):
+        value = getattr(obj, "rating_avg", None)
+        return round(value, 1) if value is not None else None
+
+    def get_rating_count(self, obj):
+        return getattr(obj, "rating_count", 0) or 0
