@@ -198,6 +198,15 @@ export default function ManageVehiclePage() {
             </section>
 
             <Button
+              onClick={() => router.push(`/vehicles/mine/${id}/edit`)}
+              className="h-12 rounded-full font-bold"
+            >
+              {vehicle.approval_status === "rejected"
+                ? "ویرایش و ارسال مجدد"
+                : "ویرایش وسیله"}
+            </Button>
+
+            <Button
               variant="outline"
               onClick={() => router.push(`/vehicles/mine/${id}/qr`)}
               className="h-12 rounded-full border-border bg-card font-medium"

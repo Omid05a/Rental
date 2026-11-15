@@ -120,3 +120,16 @@ export function jalaliYearMonth(value: string | Date) {
   );
   return { jy, jm };
 }
+
+const dateOnlyFormat = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+  timeZone: TEHRAN_TZ,
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+/** Formats a Gregorian date (YYYY-MM-DD) as a Persian date without a time. */
+export function formatJalaliDate(iso: string) {
+  return dateOnlyFormat.format(new Date(`${iso}T12:00:00${TEHRAN_OFFSET}`));
+}

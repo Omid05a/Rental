@@ -30,6 +30,7 @@ export type Vehicle = {
   longitude: number;
   address: string;
   pickup_radius_m: number;
+  location_locked: boolean;
   is_active: boolean;
   approval_status: ApprovalStatus;
   rejection_reason: string;
@@ -71,7 +72,7 @@ export const APPROVAL: Record<
   },
   rejected: {
     label: "ردشده",
-    hint: "وسیله تأیید نشد. دلیل را ببینید و وسیله جدیدی ثبت کنید.",
+    hint: "وسیله تأیید نشد. دلیل را ببینید، وسیله را ویرایش کنید تا دوباره برای بررسی ارسال شود.",
     className: "bg-red-500/15 text-red-400",
   },
 };
