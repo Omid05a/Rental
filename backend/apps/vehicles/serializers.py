@@ -10,6 +10,16 @@ ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
 CAR_ONLY_TEXT_FIELDS = ("transmission", "fuel_type")
 CAR_ONLY_NUMBER_FIELDS = ("seats", "insurance_expiry", "min_fuel_percent")
 
+# Changing any of these on an approved vehicle sends it back to staff review.
+MODERATED_FIELDS = (
+    "title",
+    "brand",
+    "model_name",
+    "year",
+    "description",
+    "address",
+)
+
 
 class VehiclePhotoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,6 +58,7 @@ class VehicleSerializer(DistanceMixin, serializers.ModelSerializer):
     owner_first_name = serializers.CharField(
         source="owner.first_name", read_only=True
     )
+    location_locked = serializers.SerializerMethodField()
 
     class Meta:
         model = Vehicle
@@ -72,6 +83,7 @@ class VehicleSerializer(DistanceMixin, serializers.ModelSerializer):
             "longitude",
             "address",
             "pickup_radius_m",
+            "location_locked",
             "is_active",
             "approval_status",
             "rejection_reason",
@@ -80,6 +92,21 @@ class VehicleSerializer(DistanceMixin, serializers.ModelSerializer):
             "distance_m",
         )
         read_only_fields = ("id", "approval_status", "rejection_reason")
+
+    def get_location_locked(self, obj):
+        # Only the owner needs to know; the public API always reports False.
+        request = self.context.get("request")
+        if request is None or request.user != obj.owner:
+            return False
+        return self._has_open_bookings(obj)
+
+    @staticmethod
+    def _has_open_bookings(instance):
+        from apps.bookings.models import Booking
+
+        return Booking.objects.filter(
+            vehicle=instance, status__in=["confirmed", "active"]
+        ).exists()
 
     def validate(self, attrs):
         instance = self.instance
@@ -105,7 +132,10 @@ class VehicleSerializer(DistanceMixin, serializers.ModelSerializer):
                 errors["insurance_expiry"] = (
                     "Insurance expiry date is required for cars."
                 )
-            elif expiry < timezone.localdate():
+            elif (
+                instance is None or "insurance_expiry" in attrs
+            ) and expiry < timezone.localdate():
+                # A stored (old) date only matters when the owner sets a new one.
                 errors["insurance_expiry"] = "The insurance has expired."
         else:
             # Bicycles have no car-only details.
@@ -138,6 +168,8 @@ class VehicleSerializer(DistanceMixin, serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"latitude": "Send latitude and longitude together."}
             )
+
+        moved = False
         if latitude is not None:
             moved = (
                 abs(latitude - instance.latitude) > 1e-6
@@ -150,16 +182,25 @@ class VehicleSerializer(DistanceMixin, serializers.ModelSerializer):
                         "has upcoming or active bookings."
                     }
                 )
-            instance.location = Point(longitude, latitude, srid=4326)
+            if moved:
+                instance.location = Point(longitude, latitude, srid=4326)
+
+        changed = [
+            name
+            for name, new_value in validated_data.items()
+            if name != "is_active" and getattr(instance, name) != new_value
+        ]
+        status = instance.approval_status
+        Status = Vehicle.ApprovalStatus
+        resubmit = status == Status.REJECTED and (moved or bool(changed))
+        re_review = status == Status.APPROVED and (
+            moved or any(name in MODERATED_FIELDS for name in changed)
+        )
+        if resubmit or re_review:
+            validated_data["approval_status"] = Status.PENDING
+            validated_data["rejection_reason"] = ""
+
         return super().update(instance, validated_data)
-
-    @staticmethod
-    def _has_open_bookings(instance):
-        from apps.bookings.models import Booking
-
-        return Booking.objects.filter(
-            vehicle=instance, status__in=["confirmed", "active"]
-        ).exists()
 
 
 class VehicleListSerializer(DistanceMixin, serializers.ModelSerializer):
