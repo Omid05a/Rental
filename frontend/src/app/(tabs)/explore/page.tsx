@@ -2,7 +2,7 @@
 
 import { ChevronUp, LocateFixed } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import type { LatLng } from "@/components/map/location-picker";
 import { VehicleCard } from "@/components/vehicle-card";
@@ -15,7 +15,7 @@ import type { Paginated, PublicVehicle, VehicleKind } from "@/lib/vehicles";
 // Leaflet needs the browser, so the map is loaded on the client only.
 const ExploreMap = dynamic(() => import("@/components/map/explore-map"), {
   ssr: false,
-  loading: () => <div className="size-full animate-pulse bg-card" />,
+  loading: () => <div className="skeleton size-full rounded-none" />,
 });
 
 type Kind = "all" | VehicleKind;
@@ -110,7 +110,7 @@ export default function ExplorePage() {
   }
 
   if (!ready || !user) {
-    return <div className="h-[calc(100dvh-5rem)] bg-background" />;
+    return <div className="skeleton h-[calc(100dvh-5rem)] rounded-none" />;
   }
 
   const sheetHeight = expanded ? "h-[68%]" : selected ? "h-56" : "h-36";
@@ -126,7 +126,7 @@ export default function ExplorePage() {
         />
       </div>
 
-      <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-2 p-4 pt-6">
+      <div className="animate-fade-up absolute inset-x-0 top-0 z-10 flex items-center gap-2 p-4 pt-6">
         <div
           role="group"
           aria-label="نوع وسیله"
@@ -141,10 +141,10 @@ export default function ExplorePage() {
                 setKind(option.value);
                 setSelectedId(null);
               }}
-              className={`h-10 shrink-0 rounded-full px-5 text-sm font-medium shadow-lg ${
+              className={`press h-10 shrink-0 rounded-full px-5 text-sm font-medium shadow-lg ${
                 kind === option.value
                   ? "bg-primary text-primary-foreground"
-                  : "bg-background/90 text-foreground"
+                  : "bg-background/90 text-foreground hover:bg-background"
               }`}
             >
               {option.label}
@@ -157,23 +157,25 @@ export default function ExplorePage() {
           onClick={locateMe}
           disabled={locating}
           aria-label="موقعیت من"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background/90 shadow-lg disabled:opacity-60"
+          className="press flex size-10 shrink-0 items-center justify-center rounded-full bg-background/90 shadow-lg hover:bg-background disabled:opacity-60"
         >
-          <LocateFixed className="size-5" />
+          <LocateFixed
+            className={`size-5 ${locating ? "animate-spin text-primary" : ""}`}
+          />
         </button>
       </div>
 
       {locationError ? (
         <p
           role="alert"
-          className="absolute inset-x-4 top-20 z-10 rounded-2xl bg-background/95 p-3 text-sm text-destructive shadow-lg"
+          className="animate-fade-up absolute inset-x-4 top-20 z-10 rounded-2xl bg-background/95 p-3 text-sm text-destructive shadow-lg"
         >
           {locationError}
         </p>
       ) : null}
 
       <section
-        className={`absolute inset-x-0 bottom-0 z-10 flex flex-col rounded-t-3xl bg-background shadow-[0_-8px_24px_rgba(0,0,0,0.5)] transition-[height] duration-300 ${sheetHeight}`}
+        className={`animate-slide-up absolute inset-x-0 bottom-0 z-10 flex flex-col rounded-t-3xl bg-background shadow-[0_-8px_24px_rgba(0,0,0,0.5)] transition-[height] duration-300 ease-out ${sheetHeight}`}
       >
         <button
           type="button"
@@ -189,7 +191,7 @@ export default function ExplorePage() {
                 : `${toFa(items.length)} وسیله${userPoint ? " نزدیک شما" : ""}`}
             </strong>
             <ChevronUp
-              className={`size-5 transition-transform ${
+              className={`size-5 transition-transform duration-300 ${
                 expanded ? "rotate-180" : ""
               }`}
             />
@@ -204,26 +206,40 @@ export default function ExplorePage() {
           ) : null}
 
           {!result?.error && !loading && items.length === 0 ? (
-            <p className="px-2 text-center text-sm text-muted-foreground">
+            <p className="animate-fade-in px-2 text-center text-sm text-muted-foreground">
               وسیله‌ای پیدا نشد. فیلتر را تغییر دهید.
             </p>
           ) : null}
 
           {expanded ? (
-            <ul className="flex flex-col gap-3">
-              {items.map((vehicle) => (
-                <li key={vehicle.id}>
-                  <VehicleCard
-                    vehicle={vehicle}
-                    highlighted={vehicle.id === selectedId}
-                  />
-                </li>
-              ))}
-            </ul>
+            loading ? (
+              <ul className="flex flex-col gap-3" aria-hidden="true">
+                {[0, 1, 2].map((n) => (
+                  <li key={n} className="skeleton h-30 rounded-3xl" />
+                ))}
+              </ul>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {items.map((vehicle, index) => (
+                  <li
+                    key={vehicle.id}
+                    className="stagger"
+                    style={{ "--i": Math.min(index, 8) } as CSSProperties}
+                  >
+                    <VehicleCard
+                      vehicle={vehicle}
+                      highlighted={vehicle.id === selectedId}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )
           ) : selected ? (
-            <VehicleCard vehicle={selected} highlighted />
+            <div key={selected.id} className="animate-fade-up">
+              <VehicleCard vehicle={selected} highlighted />
+            </div>
           ) : items.length > 0 ? (
-            <p className="px-2 text-center text-sm text-muted-foreground">
+            <p className="animate-fade-in px-2 text-center text-sm text-muted-foreground">
               روی یک قیمت در نقشه بزنید یا فهرست را باز کنید.
             </p>
           ) : null}
