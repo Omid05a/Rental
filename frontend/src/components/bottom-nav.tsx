@@ -32,16 +32,29 @@ export function BottomNav() {
             key={tab.href}
             href={tab.href}
             aria-current={active ? "page" : undefined}
-            className={`flex w-20 flex-col items-center gap-1 text-xs ${
-              active ? "font-bold text-primary" : "text-muted-foreground"
+            className={`press relative flex h-full w-20 flex-col items-center justify-center gap-1 text-xs ${
+              active
+                ? "font-bold text-primary"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <span className="relative">
+            {active ? (
+              <span
+                aria-hidden="true"
+                className="animate-scale-in absolute inset-x-0 top-0 mx-auto h-0.5 w-8 rounded-full bg-primary"
+              />
+            ) : null}
+            <span
+              className={`relative transition-transform duration-300 ease-out ${
+                active ? "-translate-y-0.5 scale-110" : ""
+              }`}
+            >
               <Icon className="size-6" />
               {showBadge ? (
                 <span
+                  key={count}
                   aria-label={`${toFa(count)} اعلان خوانده‌نشده`}
-                  className="absolute -end-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-4 text-white"
+                  className="animate-scale-in absolute -end-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold leading-4 text-white"
                 >
                   {count > 9 ? `${toFa(9)}+` : toFa(count)}
                 </span>

@@ -19,14 +19,18 @@ export function VehicleCard({
     <Link
       href={`/vehicles/${vehicle.id}`}
       className={cn(
-        "flex items-center gap-4 rounded-3xl bg-card p-3",
+        "card-hover press flex items-center gap-4 rounded-3xl border border-transparent bg-card p-3",
         highlighted && "ring-2 ring-primary",
       )}
     >
       <div className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-secondary text-muted-foreground">
         {vehicle.cover ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={vehicle.cover} alt="" className="size-full object-cover" />
+          <img
+            src={vehicle.cover}
+            alt=""
+            className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          />
         ) : (
           <Icon className="size-9" />
         )}
