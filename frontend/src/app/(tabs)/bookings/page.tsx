@@ -2,7 +2,7 @@
 
 import { Bike, Car } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import { PageShell } from "@/components/page-shell";
 import { useRequireAuth } from "@/lib/auth";
@@ -25,6 +25,11 @@ const TABS: { value: Role; label: string }[] = [
   { value: "renter", label: "سفرهای من" },
   { value: "owner", label: "رزروهای وسایل من" },
 ];
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 export default function BookingsPage() {
   const { user, ready, authFetch } = useRequireAuth();
@@ -53,11 +58,11 @@ export default function BookingsPage() {
   }
 
   const loading = result?.role !== role;
-  const items = result?.items ?? NO_ITEMS;
+  const items = loading ? NO_ITEMS : (result?.items ?? NO_ITEMS);
 
   return (
     <PageShell>
-      <header className="px-6 pb-4 pt-12">
+      <header className="animate-fade-up px-6 pb-4 pt-12">
         <h1 className="text-xl font-bold">رزروها</h1>
         <div role="tablist" className="mt-4 flex gap-2">
           {TABS.map((tab) => (
@@ -67,10 +72,10 @@ export default function BookingsPage() {
               role="tab"
               aria-selected={role === tab.value}
               onClick={() => setRole(tab.value)}
-              className={`h-10 flex-1 rounded-full px-3 text-sm font-medium ${
+              className={`press h-10 flex-1 rounded-full px-3 text-sm font-medium ${
                 role === tab.value
                   ? "bg-primary text-primary-foreground"
-                  : "bg-card"
+                  : "bg-card hover:bg-accent"
               }`}
             >
               {tab.label}
@@ -81,34 +86,44 @@ export default function BookingsPage() {
 
       <main className="flex flex-1 flex-col gap-3 px-6 pb-10">
         {result?.error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {result.error}
           </p>
         ) : null}
 
         {loading ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
+          <ul className="flex flex-col gap-3" aria-hidden="true">
+            {[0, 1, 2].map((n) => (
+              <li key={n} className="skeleton h-28 rounded-3xl" />
+            ))}
+          </ul>
         ) : null}
 
         {!loading && !result?.error && items.length === 0 ? (
-          <div className="rounded-3xl bg-card p-8 text-center text-sm text-muted-foreground">
+          <div className="animate-scale-in rounded-3xl bg-card p-8 text-center text-sm text-muted-foreground">
             {role === "renter"
               ? "هنوز رزروی انجام نداده‌اید. از بخش جستجو یک وسیله پیدا کنید."
               : "هنوز کسی وسایل شما را رزرو نکرده است."}
           </div>
         ) : null}
 
-        <ul className="flex flex-col gap-3">
-          {items.map((booking) => {
+        {/* Re-keyed by role so the entrance animation replays on tab change */}
+        <ul key={role} className="flex flex-col gap-3">
+          {items.map((booking, index) => {
             const status = BOOKING_STATUS[booking.status];
             const Icon = booking.vehicle.kind === "bike" ? Bike : Car;
             return (
-              <li key={booking.id}>
+              <li
+                key={booking.id}
+                className="stagger"
+                style={stagger(Math.min(index, 8))}
+              >
                 <Link
                   href={`/bookings/${booking.id}`}
-                  className="flex items-center gap-4 rounded-3xl bg-card p-3"
+                  className="card-hover press flex items-center gap-4 rounded-3xl border border-transparent bg-card p-3"
                 >
                   <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-secondary text-muted-foreground">
                     {booking.vehicle.cover ? (
