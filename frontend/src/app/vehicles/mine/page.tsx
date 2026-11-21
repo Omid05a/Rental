@@ -3,7 +3,7 @@
 import { ArrowRight, Bike, Car, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,11 @@ import { useRequireAuth } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
 import { formatToman } from "@/lib/format";
 import { APPROVAL, type Vehicle } from "@/lib/vehicles";
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 export default function MyVehiclesPage() {
   const router = useRouter();
@@ -39,7 +44,7 @@ export default function MyVehiclesPage() {
           type="button"
           onClick={() => router.push("/profile")}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -48,7 +53,7 @@ export default function MyVehiclesPage() {
 
       <main className="flex flex-1 flex-col gap-4 px-6 pb-10">
         {!verified ? (
-          <div className="flex flex-col gap-3 rounded-3xl bg-card p-5">
+          <div className="animate-fade-up flex flex-col gap-3 rounded-3xl bg-card p-5">
             <p className="text-sm leading-relaxed text-muted-foreground">
               برای ثبت وسیله، ابتدا باید هویت شما تأیید شود.
             </p>
@@ -62,20 +67,25 @@ export default function MyVehiclesPage() {
         ) : null}
 
         {error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {error}
           </p>
         ) : null}
 
         {!vehicles && !error ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
+          <ul className="flex flex-col gap-3" aria-hidden="true">
+            {[0, 1, 2].map((n) => (
+              <li key={n} className="skeleton h-28 rounded-3xl" />
+            ))}
+          </ul>
         ) : null}
 
         {vehicles && vehicles.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-3xl bg-card p-8 text-center">
-            <Car className="size-10 text-primary" />
+          <div className="animate-scale-in flex flex-col items-center gap-3 rounded-3xl bg-card p-8 text-center">
+            <Car className="animate-float size-10 text-primary" />
             <p className="text-sm text-muted-foreground">
               هنوز وسیله‌ای ثبت نکرده‌اید.
             </p>
@@ -83,15 +93,19 @@ export default function MyVehiclesPage() {
         ) : null}
 
         <ul className="flex flex-col gap-3">
-          {vehicles?.map((vehicle) => {
+          {vehicles?.map((vehicle, index) => {
             const status = APPROVAL[vehicle.approval_status];
             const cover = vehicle.photos[0]?.image;
             const Icon = vehicle.kind === "bike" ? Bike : Car;
             return (
-              <li key={vehicle.id}>
+              <li
+                key={vehicle.id}
+                className="stagger"
+                style={stagger(Math.min(index, 8))}
+              >
                 <Link
                   href={`/vehicles/mine/${vehicle.id}`}
-                  className="flex items-center gap-4 rounded-3xl bg-card p-3"
+                  className="card-hover press flex items-center gap-4 rounded-3xl border border-transparent bg-card p-3"
                 >
                   <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-secondary text-muted-foreground">
                     {cover ? (
@@ -125,7 +139,7 @@ export default function MyVehiclesPage() {
         {verified ? (
           <Button
             onClick={() => router.push("/vehicles/new")}
-            className="mt-auto h-14 rounded-full text-base font-bold"
+            className="animate-fade-up mt-auto h-14 rounded-full text-base font-bold"
           >
             <Plus className="size-5" />
             ثبت وسیله جدید
