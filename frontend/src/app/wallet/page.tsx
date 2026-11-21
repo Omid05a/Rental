@@ -1,8 +1,8 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 
 import { DigitsInput, Field } from "@/components/form-bits";
 import { PageShell } from "@/components/page-shell";
@@ -21,6 +21,11 @@ import { formatJalaliDateTime } from "@/lib/jalali";
 const PRESETS = [500_000, 1_000_000, 2_000_000, 5_000_000];
 const MIN_AMOUNT = 10_000;
 const MAX_AMOUNT = 100_000_000;
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 export default function WalletPage() {
   const router = useRouter();
@@ -89,7 +94,7 @@ export default function WalletPage() {
           type="button"
           onClick={() => router.push("/profile")}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -97,14 +102,27 @@ export default function WalletPage() {
       </header>
 
       <main className="flex flex-1 flex-col gap-5 px-6 pb-10">
-        <section className="rounded-3xl bg-primary p-6 text-primary-foreground">
+        <section className="animate-scale-in rounded-3xl bg-primary p-6 text-primary-foreground shadow-[0_12px_32px_-12px_rgb(255_199_0/0.55)]">
           <p className="text-sm opacity-70">موجودی</p>
-          <p className="mt-1 text-3xl font-extrabold">
-            {wallet ? formatToman(wallet.balance) : "…"}
-          </p>
+          {wallet ? (
+            <p
+              key={wallet.balance}
+              className="animate-fade-in mt-1 text-3xl font-extrabold"
+            >
+              {formatToman(wallet.balance)}
+            </p>
+          ) : (
+            <div
+              className="mt-2 h-9 w-2/3 animate-pulse rounded-lg bg-black/15"
+              aria-hidden="true"
+            />
+          )}
         </section>
 
-        <section className="flex flex-col gap-4 rounded-3xl bg-card p-5">
+        <section
+          className="stagger flex flex-col gap-4 rounded-3xl bg-card p-5"
+          style={stagger(1)}
+        >
           <h2 className="font-semibold">افزایش موجودی</h2>
           <div className="flex flex-wrap gap-2">
             {PRESETS.map((value) => (
@@ -113,10 +131,10 @@ export default function WalletPage() {
                 type="button"
                 aria-pressed={Number(amount) === value}
                 onClick={() => setAmount(String(value))}
-                className={`h-10 rounded-full px-4 text-sm font-medium ${
+                className={`press h-10 rounded-full px-4 text-sm font-medium ${
                   Number(amount) === value
                     ? "bg-primary text-primary-foreground"
-                    : "bg-secondary"
+                    : "bg-secondary hover:bg-accent"
                 }`}
               >
                 {toFa(new Intl.NumberFormat("en-US").format(value))}
@@ -133,12 +151,18 @@ export default function WalletPage() {
           </Field>
 
           {error ? (
-            <p role="alert" className="px-2 text-sm text-destructive">
+            <p
+              role="alert"
+              className="animate-fade-up px-2 text-sm text-destructive"
+            >
               {error}
             </p>
           ) : null}
           {success ? (
-            <p role="status" className="px-2 text-sm text-green-400">
+            <p
+              role="status"
+              className="animate-scale-in px-2 text-sm text-green-400"
+            >
               {success}
             </p>
           ) : null}
@@ -148,6 +172,7 @@ export default function WalletPage() {
             onClick={handleTopUp}
             className="h-14 rounded-full text-base font-bold"
           >
+            {loading ? <LoaderCircle className="animate-spin" /> : null}
             {loading ? "در حال پرداخت…" : "پرداخت و شارژ"}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
@@ -155,18 +180,29 @@ export default function WalletPage() {
           </p>
         </section>
 
-        <section className="flex flex-col gap-3">
+        <section
+          className="stagger flex flex-col gap-3"
+          style={stagger(2)}
+        >
           <h2 className="px-2 font-semibold">تراکنش‌های اخیر</h2>
+          {!wallet && !error ? (
+            <ul className="flex flex-col gap-2" aria-hidden="true">
+              {[0, 1, 2].map((n) => (
+                <li key={n} className="skeleton h-16 rounded-2xl" />
+              ))}
+            </ul>
+          ) : null}
           {wallet && wallet.transactions.length === 0 ? (
-            <p className="px-2 text-sm text-muted-foreground">
+            <p className="animate-fade-in px-2 text-sm text-muted-foreground">
               هنوز تراکنشی ثبت نشده است.
             </p>
           ) : null}
           <ul className="flex flex-col gap-2">
-            {wallet?.transactions.map((item: WalletTransaction) => (
+            {wallet?.transactions.map((item: WalletTransaction, index) => (
               <li
                 key={item.id}
-                className="flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3"
+                className="stagger flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3"
+                style={stagger(Math.min(index, 8))}
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium">
