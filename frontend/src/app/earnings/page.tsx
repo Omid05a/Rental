@@ -3,7 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import { PageShell } from "@/components/page-shell";
 import { useRequireAuth } from "@/lib/auth";
@@ -19,6 +19,11 @@ import type { Earnings, EarningsItem } from "@/lib/social";
 type Result = { data: Earnings | null; error: string | null };
 
 type MonthSlot = { jy: number; jm: number; net: number };
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 function buildMonths(items: EarningsItem[], now: Date): MonthSlot[] {
   let { jy, jm } = jalaliYearMonth(now);
@@ -42,17 +47,20 @@ function buildMonths(items: EarningsItem[], now: Date): MonthSlot[] {
 function Stat({
   label,
   value,
+  index,
   strong = false,
 }: {
   label: string;
   value: string;
+  index: number;
   strong?: boolean;
 }) {
   return (
     <div
-      className={`flex flex-col gap-1 rounded-3xl p-4 ${
+      className={`stagger flex flex-col gap-1 rounded-3xl p-4 ${
         strong ? "bg-primary text-primary-foreground" : "bg-card"
       }`}
+      style={stagger(index)}
     >
       <span className={`text-xs ${strong ? "opacity-70" : "text-muted-foreground"}`}>
         {label}
@@ -62,11 +70,27 @@ function Stat({
   );
 }
 
+function EarningsSkeleton() {
+  return (
+    <div className="flex flex-col gap-5" aria-hidden="true">
+      <div className="skeleton h-20 rounded-3xl" />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="skeleton h-20 rounded-3xl" />
+        <div className="skeleton h-20 rounded-3xl" />
+        <div className="skeleton h-20 rounded-3xl" />
+        <div className="skeleton h-20 rounded-3xl" />
+      </div>
+      <div className="skeleton h-56 rounded-3xl" />
+    </div>
+  );
+}
+
 export default function EarningsPage() {
   const router = useRouter();
   const { user, ready, authFetch } = useRequireAuth();
   const [result, setResult] = useState<Result | null>(null);
   const [now] = useState(() => new Date());
+  const [grown, setGrown] = useState(false);
 
   useEffect(() => {
     if (!ready || !user) return;
@@ -89,6 +113,13 @@ export default function EarningsPage() {
     [data, now],
   );
 
+  // Let the chart bars grow from zero once the data has rendered
+  useEffect(() => {
+    if (!data) return;
+    const frame = requestAnimationFrame(() => setGrown(true));
+    return () => cancelAnimationFrame(frame);
+  }, [data]);
+
   if (!ready || !user) {
     return <div className="min-h-dvh bg-background" />;
   }
@@ -102,7 +133,7 @@ export default function EarningsPage() {
           type="button"
           onClick={() => router.push("/profile")}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -111,35 +142,51 @@ export default function EarningsPage() {
 
       <main className="flex flex-1 flex-col gap-5 px-6 pb-10">
         {result?.error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {result.error}
           </p>
         ) : null}
 
-        {!result ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
-        ) : null}
+        {!result ? <EarningsSkeleton /> : null}
 
         {data ? (
           <>
-            <Stat label="درآمد خالص" value={formatToman(data.total_net)} strong />
+            <Stat
+              label="درآمد خالص"
+              value={formatToman(data.total_net)}
+              index={0}
+              strong
+            />
 
             <div className="grid grid-cols-2 gap-3">
-              <Stat label="درآمد ناخالص" value={formatToman(data.total_gross)} />
-              <Stat label="کارمزد رنتال" value={formatToman(data.total_fees)} />
-              <Stat label="تعداد سفرها" value={toFa(data.trips)} />
+              <Stat
+                label="درآمد ناخالص"
+                value={formatToman(data.total_gross)}
+                index={1}
+              />
+              <Stat
+                label="کارمزد رنتال"
+                value={formatToman(data.total_fees)}
+                index={2}
+              />
+              <Stat label="تعداد سفرها" value={toFa(data.trips)} index={3} />
               <Stat
                 label="رزروهای پیش‌رو (ناخالص)"
                 value={formatToman(data.pending_gross)}
+                index={4}
               />
             </div>
 
-            <section className="rounded-3xl bg-card p-5">
+            <section
+              className="stagger rounded-3xl bg-card p-5"
+              style={stagger(5)}
+            >
               <h2 className="font-semibold">درآمد خالص ماهانه</h2>
               <div className="mt-4 flex h-36 items-end gap-2">
-                {months.map((month) => (
+                {months.map((month, index) => (
                   <div
                     key={`${month.jy}-${month.jm}`}
                     className="flex h-full flex-1 items-end"
@@ -147,10 +194,16 @@ export default function EarningsPage() {
                     <div
                       className="w-full rounded-t-lg bg-primary"
                       style={{
-                        height: `${
-                          month.net > 0 ? Math.max(6, (month.net / max) * 100) : 2
-                        }%`,
+                        height: grown
+                          ? `${
+                              month.net > 0
+                                ? Math.max(6, (month.net / max) * 100)
+                                : 2
+                            }%`
+                          : "2%",
                         opacity: month.net > 0 ? 1 : 0.25,
+                        transition: "height 700ms var(--ease-out)",
+                        transitionDelay: `${index * 70}ms`,
                       }}
                     />
                   </div>
@@ -172,7 +225,10 @@ export default function EarningsPage() {
             </section>
 
             {data.by_vehicle.length > 0 ? (
-              <section className="rounded-3xl bg-card px-5 py-3">
+              <section
+                className="stagger rounded-3xl bg-card px-5 py-3"
+                style={stagger(6)}
+              >
                 <h2 className="py-2 font-semibold">به تفکیک وسیله</h2>
                 <ul className="divide-y divide-border">
                   {data.by_vehicle.map((row) => (
@@ -197,7 +253,10 @@ export default function EarningsPage() {
               </section>
             ) : null}
 
-            <section className="flex flex-col gap-2">
+            <section
+              className="stagger flex flex-col gap-2"
+              style={stagger(7)}
+            >
               <h2 className="px-2 font-semibold">تراکنش‌های درآمدی</h2>
               {data.items.length === 0 ? (
                 <p className="rounded-3xl bg-card p-6 text-center text-sm text-muted-foreground">
@@ -206,11 +265,15 @@ export default function EarningsPage() {
                 </p>
               ) : null}
               <ul className="flex flex-col gap-2">
-                {data.items.map((item) => (
-                  <li key={`${item.booking_id}-${item.kind}`}>
+                {data.items.map((item, index) => (
+                  <li
+                    key={`${item.booking_id}-${item.kind}`}
+                    className="stagger"
+                    style={stagger(Math.min(index, 8))}
+                  >
                     <Link
                       href={`/bookings/${item.booking_id}`}
-                      className="flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3"
+                      className="press flex items-center justify-between gap-3 rounded-2xl bg-card px-4 py-3 hover:bg-accent"
                     >
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-medium">
