@@ -2,7 +2,7 @@
 
 import { ArrowRight, Bike, Car, MapPin } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import { PageShell } from "@/components/page-shell";
 import { RatingBadge, Stars } from "@/components/stars";
@@ -26,6 +26,11 @@ type LoadState = {
 
 type ReviewsState = { id: string; data: VehicleReviews | null };
 
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
+
 function Chip({ children }: { children: string }) {
   return (
     <span className="rounded-full bg-card px-3 py-1 text-xs text-muted-foreground">
@@ -39,6 +44,24 @@ function Row({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between gap-4 py-2.5 text-sm">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="text-end font-medium">{value}</dd>
+    </div>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-5" aria-hidden="true">
+      <div className="skeleton mx-6 aspect-[4/3] rounded-3xl" />
+      <div className="flex flex-col gap-3 px-6">
+        <div className="skeleton h-6 w-2/3" />
+        <div className="skeleton h-4 w-1/2" />
+        <div className="flex gap-2">
+          <div className="skeleton h-7 w-16 rounded-full" />
+          <div className="skeleton h-7 w-20 rounded-full" />
+          <div className="skeleton h-7 w-14 rounded-full" />
+        </div>
+      </div>
+      <div className="skeleton mx-6 h-36 rounded-3xl" />
     </div>
   );
 }
@@ -99,7 +122,7 @@ export default function VehicleDetail() {
           type="button"
           onClick={() => router.push("/explore")}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -109,14 +132,13 @@ export default function VehicleDetail() {
       </header>
 
       <main className="flex flex-1 flex-col gap-5 pb-32">
-        {!current ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
-        ) : null}
+        {!current ? <DetailSkeleton /> : null}
 
         {current?.error ? (
-          <p role="alert" className="px-6 text-center text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-6 text-center text-sm text-destructive"
+          >
             {current.error}
           </p>
         ) : null}
@@ -124,7 +146,7 @@ export default function VehicleDetail() {
         {vehicle ? (
           <>
             {vehicle.photos.length > 0 ? (
-              <ul className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]">
+              <ul className="animate-fade-in flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none]">
                 {vehicle.photos.map((photo) => (
                   <li
                     key={photo.id}
@@ -140,12 +162,12 @@ export default function VehicleDetail() {
                 ))}
               </ul>
             ) : (
-              <div className="mx-6 flex aspect-[4/3] items-center justify-center rounded-3xl bg-card text-muted-foreground">
-                <Icon className="size-14" />
+              <div className="animate-scale-in mx-6 flex aspect-[4/3] items-center justify-center rounded-3xl bg-card text-muted-foreground">
+                <Icon className="animate-float size-14" />
               </div>
             )}
 
-            <div className="flex flex-col gap-3 px-6">
+            <div className="stagger flex flex-col gap-3 px-6" style={stagger(1)}>
               <div>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-lg font-bold">{vehicle.title}</h2>
@@ -182,7 +204,10 @@ export default function VehicleDetail() {
               ) : null}
             </div>
 
-            <section className="mx-6 rounded-3xl bg-card px-5 py-2">
+            <section
+              className="stagger mx-6 rounded-3xl bg-card px-5 py-2"
+              style={stagger(2)}
+            >
               <dl className="divide-y divide-border">
                 <Row
                   label="قیمت هر ساعت"
@@ -215,7 +240,10 @@ export default function VehicleDetail() {
               </dl>
             </section>
 
-            <section className="mx-6 rounded-3xl bg-card p-5">
+            <section
+              className="stagger mx-6 rounded-3xl bg-card p-5"
+              style={stagger(3)}
+            >
               <h3 className="font-semibold">قوانین تحویل</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 وسیله را در پایان سفر به همین محل برگردانید و سطح بنزین یا
@@ -228,14 +256,18 @@ export default function VehicleDetail() {
             </section>
 
             {reviews && reviews.count > 0 ? (
-              <section className="mx-6 flex flex-col gap-3 rounded-3xl bg-card p-5">
+              <section className="animate-fade-up mx-6 flex flex-col gap-3 rounded-3xl bg-card p-5">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="font-semibold">نظر اجاره‌کنندگان</h3>
                   <RatingBadge avg={reviews.avg} count={reviews.count} />
                 </div>
                 <ul className="flex flex-col divide-y divide-border">
-                  {reviews.results.map((review) => (
-                    <li key={review.id} className="flex flex-col gap-1.5 py-3">
+                  {reviews.results.map((review, index) => (
+                    <li
+                      key={review.id}
+                      className="stagger flex flex-col gap-1.5 py-3"
+                      style={stagger(Math.min(index, 6))}
+                    >
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-sm font-medium">
                           {review.author_first_name || "کاربر رنتال"}
@@ -256,7 +288,7 @@ export default function VehicleDetail() {
               </section>
             ) : null}
 
-            <div className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md items-center justify-between gap-4 border-t border-border bg-background/95 px-6 py-4 backdrop-blur">
+            <div className="animate-slide-up fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md items-center justify-between gap-4 border-t border-border bg-background/95 px-6 py-4 backdrop-blur">
               <div>
                 <p className="text-xs text-muted-foreground">شروع از</p>
                 <p className="font-bold text-primary">
