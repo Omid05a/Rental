@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import {
   JalaliDatePicker,
@@ -47,6 +47,11 @@ type QuoteResult = {
   error: string | null;
 };
 
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
+
 function SummaryRow({
   label,
   value,
@@ -64,6 +69,17 @@ function SummaryRow({
     >
       <dt className={strong ? "" : "text-muted-foreground"}>{label}</dt>
       <dd className="text-end">{value}</dd>
+    </div>
+  );
+}
+
+function QuoteSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 py-3" aria-hidden="true">
+      <div className="skeleton h-4 w-full" />
+      <div className="skeleton h-4 w-5/6" />
+      <div className="skeleton h-5 w-full" />
+      <div className="skeleton h-4 w-2/3" />
     </div>
   );
 }
@@ -208,7 +224,7 @@ export default function BookingFlow() {
           type="button"
           onClick={() => router.push(`/vehicles/${id}`)}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -217,84 +233,95 @@ export default function BookingFlow() {
 
       <main className="flex flex-1 flex-col gap-6 px-6 pb-44">
         {loadError ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p role="alert" className="animate-fade-up px-2 text-sm text-destructive">
             {loadError}
           </p>
         ) : null}
 
         {vehicle ? (
-          <div className="rounded-3xl bg-card p-4">
+          <div className="animate-fade-up rounded-3xl bg-card p-4">
             <h2 className="font-semibold">{vehicle.title}</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {formatToman(vehicle.price_per_hour)} / ساعت ·{" "}
               {formatToman(vehicle.price_per_day)} / روز
             </p>
           </div>
-        ) : null}
+        ) : (
+          !loadError && <div className="skeleton h-20 rounded-3xl" aria-hidden="true" />
+        )}
 
-        <Field label="تاریخ شروع">
-          <JalaliDatePicker
-            days={days}
-            selected={dateIso}
-            onSelect={setDateIso}
-          />
-        </Field>
-
-        <Field label="ساعت شروع">
-          <TimeSelect
-            hour={hour}
-            minute={minute}
-            onChange={(nextHour, nextMinute) => {
-              setHour(nextHour);
-              setMinute(nextMinute);
-            }}
-          />
-        </Field>
-
-        <Field label="مدت اجاره">
-          <div className="flex flex-wrap gap-2">
-            {PRESETS.map((preset) => {
-              const active =
-                preset.days === dayCount && preset.hours === hourCount;
-              return (
-                <button
-                  key={preset.label}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => {
-                    setDayCount(preset.days);
-                    setHourCount(preset.hours);
-                  }}
-                  className={`h-9 rounded-full px-4 text-sm font-medium ${
-                    active
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-card"
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex gap-3">
-            <Stepper
-              label="روز"
-              value={dayCount}
-              min={0}
-              max={MAX_DAYS}
-              onChange={changeDays}
+        <div className="stagger" style={stagger(1)}>
+          <Field label="تاریخ شروع">
+            <JalaliDatePicker
+              days={days}
+              selected={dateIso}
+              onSelect={setDateIso}
             />
-            <Stepper
-              label="ساعت"
-              value={hourCount}
-              min={dayCount === 0 ? 1 : 0}
-              max={dayCount === MAX_DAYS ? 0 : 23}
-              onChange={setHourCount}
-            />
-          </div>
-        </Field>
+          </Field>
+        </div>
 
-        <section className="rounded-3xl bg-card p-5 text-sm">
+        <div className="stagger" style={stagger(2)}>
+          <Field label="ساعت شروع">
+            <TimeSelect
+              hour={hour}
+              minute={minute}
+              onChange={(nextHour, nextMinute) => {
+                setHour(nextHour);
+                setMinute(nextMinute);
+              }}
+            />
+          </Field>
+        </div>
+
+        <div className="stagger" style={stagger(3)}>
+          <Field label="مدت اجاره">
+            <div className="flex flex-wrap gap-2">
+              {PRESETS.map((preset) => {
+                const active =
+                  preset.days === dayCount && preset.hours === hourCount;
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => {
+                      setDayCount(preset.days);
+                      setHourCount(preset.hours);
+                    }}
+                    className={`press h-9 rounded-full px-4 text-sm font-medium ${
+                      active
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card hover:bg-accent"
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex gap-3">
+              <Stepper
+                label="روز"
+                value={dayCount}
+                min={0}
+                max={MAX_DAYS}
+                onChange={changeDays}
+              />
+              <Stepper
+                label="ساعت"
+                value={hourCount}
+                min={dayCount === 0 ? 1 : 0}
+                max={dayCount === MAX_DAYS ? 0 : 23}
+                onChange={setHourCount}
+              />
+            </div>
+          </Field>
+        </div>
+
+        <section
+          className="stagger rounded-3xl bg-card p-5 text-sm"
+          style={stagger(4)}
+        >
           <dl className="divide-y divide-border">
             <SummaryRow label="شروع" value={formatJalaliDateTime(startIso)} />
             <SummaryRow label="پایان" value={formatJalaliDateTime(endDate)} />
@@ -306,7 +333,7 @@ export default function BookingFlow() {
         </section>
 
         {busy.length > 0 ? (
-          <section className="rounded-3xl bg-card p-5">
+          <section className="animate-fade-up rounded-3xl bg-card p-5">
             <h3 className="font-semibold">زمان‌های غیرقابل رزرو</h3>
             <ul className="mt-2 flex flex-col gap-1.5 text-xs text-muted-foreground">
               {busy.slice(0, 5).map((range) => (
@@ -319,20 +346,27 @@ export default function BookingFlow() {
           </section>
         ) : null}
 
-        <section className="rounded-3xl bg-card p-5">
+        <section
+          className="stagger rounded-3xl bg-card p-5"
+          style={stagger(5)}
+        >
           <h3 className="mb-1 font-semibold">هزینه</h3>
           {quoteLoading ? (
-            <p className="py-3 text-sm text-muted-foreground">
-              در حال محاسبه…
-            </p>
+            <>
+              <span className="sr-only">در حال محاسبه…</span>
+              <QuoteSkeleton />
+            </>
           ) : null}
           {quoteError ? (
-            <p role="alert" className="py-3 text-sm text-destructive">
+            <p
+              role="alert"
+              className="animate-fade-in py-3 text-sm text-destructive"
+            >
               {quoteError}
             </p>
           ) : null}
           {quote ? (
-            <>
+            <div key={quoteKey} className="animate-fade-in">
               <dl className="divide-y divide-border">
                 <SummaryRow
                   label={`اجاره (${toFa(quote.hours)} ساعت)`}
@@ -357,7 +391,7 @@ export default function BookingFlow() {
                 />
               </dl>
               {!quote.enough_funds ? (
-                <div className="mt-3 flex flex-col gap-2 rounded-2xl bg-red-500/10 p-3 text-sm text-red-400">
+                <div className="animate-scale-in mt-3 flex flex-col gap-2 rounded-2xl bg-red-500/10 p-3 text-sm text-red-400">
                   <p>موجودی کیف پول کافی نیست.</p>
                   <Link href="/wallet" className="font-medium underline">
                     افزایش موجودی
@@ -367,20 +401,20 @@ export default function BookingFlow() {
               <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                 لغو رایگان تا {formatJalaliDateTime(quote.free_cancellation_until)}
               </p>
-            </>
+            </div>
           ) : null}
         </section>
 
         {terms ? (
-          <section className="rounded-3xl bg-card p-5">
+          <section className="animate-fade-up rounded-3xl bg-card p-5">
             <h3 className="font-semibold">قوانین و شرایط اجاره</h3>
             <div className="mt-2 flex flex-col divide-y divide-border">
               {terms.sections.map((section) => (
-                <details key={section.title} className="py-2">
-                  <summary className="cursor-pointer text-sm font-medium">
+                <details key={section.title} className="group py-2">
+                  <summary className="cursor-pointer text-sm font-medium transition-colors hover:text-primary">
                     {section.title}
                   </summary>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  <p className="animate-fade-in mt-2 text-sm leading-relaxed text-muted-foreground">
                     {section.text}
                   </p>
                 </details>
@@ -399,16 +433,22 @@ export default function BookingFlow() {
         ) : null}
 
         {submitError ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {submitError}
           </p>
         ) : null}
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md items-center justify-between gap-4 border-t border-border bg-background/95 px-6 py-4 backdrop-blur">
+      <div className="animate-slide-up fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-md items-center justify-between gap-4 border-t border-border bg-background/95 px-6 py-4 backdrop-blur">
         <div>
           <p className="text-xs text-muted-foreground">جمع قابل پرداخت</p>
-          <p className="font-bold text-primary">
+          <p
+            key={quote ? quote.total : "none"}
+            className="animate-fade-in font-bold text-primary"
+          >
             {quote ? formatToman(quote.total) : "—"}
           </p>
         </div>
@@ -417,6 +457,7 @@ export default function BookingFlow() {
           onClick={handleSubmit}
           className="h-12 rounded-full px-8 font-bold"
         >
+          {submitting ? <LoaderCircle className="animate-spin" /> : null}
           {submitting ? "در حال ثبت…" : "پرداخت و رزرو"}
         </Button>
       </div>

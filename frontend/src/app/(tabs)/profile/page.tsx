@@ -2,6 +2,7 @@
 
 import { ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import type { CSSProperties } from "react";
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,11 @@ const STATUS: Record<
   },
 };
 
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const { user, ready, signOut } = useRequireAuth();
@@ -52,17 +58,28 @@ export default function ProfilePage() {
   return (
     <PageShell>
       <header className="flex flex-col items-center px-6 pb-8 pt-16 text-center">
-        <div className="flex size-20 items-center justify-center rounded-full bg-primary text-3xl font-bold text-primary-foreground">
+        <div className="animate-scale-in flex size-20 items-center justify-center rounded-full bg-primary text-3xl font-bold text-primary-foreground shadow-[0_8px_28px_-8px_rgb(255_199_0/0.6)]">
           {initial}
         </div>
-        <h1 className="mt-4 text-xl font-bold">{fullName || "کاربر رنتال"}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1
+          className="animate-fade-up mt-4 text-xl font-bold"
+          style={{ animationDelay: "120ms" }}
+        >
+          {fullName || "کاربر رنتال"}
+        </h1>
+        <p
+          className="animate-fade-up mt-1 text-sm text-muted-foreground"
+          style={{ animationDelay: "200ms" }}
+        >
           <bdi dir="ltr">{toFa(user.phone)}</bdi>
         </p>
       </header>
 
       <main className="flex flex-1 flex-col gap-4 px-6 pb-10">
-        <section className="flex flex-col gap-4 rounded-3xl bg-card p-5">
+        <section
+          className="stagger flex flex-col gap-4 rounded-3xl bg-card p-5"
+          style={stagger(1)}
+        >
           <div className="flex items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
               <ShieldCheck className="size-5" />
@@ -82,7 +99,7 @@ export default function ProfilePage() {
           </p>
 
           {user.verification_status === "rejected" && user.rejection_reason ? (
-            <p className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-400">
+            <p className="animate-scale-in rounded-2xl bg-red-500/10 p-3 text-sm text-red-400">
               دلیل: {user.rejection_reason}
             </p>
           ) : null}
@@ -98,18 +115,20 @@ export default function ProfilePage() {
             </Button>
           ) : null}
         </section>
-        
+
         <Button
           variant="outline"
-          className="h-14 rounded-full border-border bg-card text-base"
+          className="stagger h-14 rounded-full border-border bg-card text-base"
+          style={stagger(2)}
           onClick={() => router.push("/wallet")}
         >
           کیف پول
         </Button>
-        
+
         <Button
           variant="outline"
-          className="h-14 rounded-full border-border bg-card text-base"
+          className="stagger h-14 rounded-full border-border bg-card text-base"
+          style={stagger(3)}
           onClick={() => router.push("/earnings")}
         >
           گزارش درآمد
@@ -117,7 +136,8 @@ export default function ProfilePage() {
 
         <Button
           variant="outline"
-          className="h-14 rounded-full border-border bg-card text-base"
+          className="stagger h-14 rounded-full border-border bg-card text-base"
+          style={stagger(4)}
           onClick={() => router.push("/vehicles/mine")}
         >
           وسایل من
@@ -125,7 +145,8 @@ export default function ProfilePage() {
 
         <Button
           variant="outline"
-          className="h-14 rounded-full border-border bg-card text-base"
+          className="stagger h-14 rounded-full border-border bg-card text-base"
+          style={stagger(5)}
           onClick={() => router.push("/onboarding")}
         >
           ویرایش نام
@@ -133,7 +154,8 @@ export default function ProfilePage() {
 
         <Button
           variant="ghost"
-          className="h-14 rounded-full text-base text-destructive"
+          className="stagger h-14 rounded-full text-base text-destructive"
+          style={stagger(6)}
           onClick={() => {
             signOut();
             router.replace("/login");
