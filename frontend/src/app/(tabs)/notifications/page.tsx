@@ -4,6 +4,7 @@ import {
   Bell,
   CalendarClock,
   Car,
+  LoaderCircle,
   Route,
   ShieldCheck,
   Star,
@@ -12,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import { useUnread } from "@/components/unread-provider";
 import { PageShell } from "@/components/page-shell";
@@ -38,6 +39,11 @@ const ICONS: Record<NotificationKind, LucideIcon> = {
 };
 
 const relativeFormat = new Intl.RelativeTimeFormat("fa", { numeric: "auto" });
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 function timeAgo(value: string, nowMs: number) {
   const diff = (new Date(value).getTime() - nowMs) / 1000;
@@ -133,15 +139,16 @@ export default function NotificationsPage() {
 
   return (
     <PageShell>
-      <header className="flex items-center justify-between gap-3 px-6 pb-4 pt-12">
+      <header className="animate-fade-up flex items-center justify-between gap-3 px-6 pb-4 pt-12">
         <h1 className="text-xl font-bold">اعلان‌ها</h1>
         {count > 0 ? (
           <Button
             variant="outline"
             disabled={busy}
             onClick={markAll}
-            className="h-9 rounded-full border-border bg-card px-4 text-xs"
+            className="animate-scale-in h-9 rounded-full border-border bg-card px-4 text-xs"
           >
+            {busy ? <LoaderCircle className="animate-spin" /> : null}
             خواندن همه
           </Button>
         ) : null}
@@ -149,37 +156,46 @@ export default function NotificationsPage() {
 
       <main className="flex flex-1 flex-col gap-3 px-6 pb-10">
         {result?.error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {result.error}
           </p>
         ) : null}
 
         {!result ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
+          <ul className="flex flex-col gap-2" aria-hidden="true">
+            {[0, 1, 2, 3].map((n) => (
+              <li key={n} className="skeleton h-24 rounded-3xl" />
+            ))}
+          </ul>
         ) : null}
 
         {result && !result.error && items.length === 0 ? (
-          <div className="rounded-3xl bg-card p-8 text-center text-sm text-muted-foreground">
+          <div className="animate-scale-in rounded-3xl bg-card p-8 text-center text-sm text-muted-foreground">
             هنوز اعلانی ندارید.
           </div>
         ) : null}
 
         <ul className="flex flex-col gap-2">
-          {items.map((item) => {
+          {items.map((item, index) => {
             const Icon = ICONS[item.kind] ?? Bell;
             return (
-              <li key={item.id}>
+              <li
+                key={item.id}
+                className="stagger"
+                style={stagger(Math.min(index, 8))}
+              >
                 <button
                   type="button"
                   onClick={() => open(item)}
-                  className={`flex w-full items-start gap-3 rounded-3xl p-4 text-start ${
+                  className={`press flex w-full items-start gap-3 rounded-3xl p-4 text-start hover:bg-accent ${
                     item.is_read ? "bg-card" : "bg-card ring-1 ring-primary/60"
                   }`}
                 >
                   <span
-                    className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
+                    className={`flex size-10 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
                       item.is_read
                         ? "bg-secondary text-muted-foreground"
                         : "bg-primary/15 text-primary"
@@ -191,7 +207,7 @@ export default function NotificationsPage() {
                     <span className="flex items-center justify-between gap-3">
                       <strong className="text-sm">{item.title}</strong>
                       {!item.is_read ? (
-                        <span className="size-2 shrink-0 rounded-full bg-primary" />
+                        <span className="pulse-ring size-2 shrink-0 rounded-full bg-primary" />
                       ) : null}
                     </span>
                     {item.body ? (
