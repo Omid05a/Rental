@@ -177,7 +177,6 @@ textarea {
 /* ------------------------------------------------------------------ */
 
 html {
-  scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
