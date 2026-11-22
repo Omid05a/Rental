@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, LoaderCircle, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 
 import { DamageSection } from "@/components/damage-section";
 import { InspectionCompare } from "@/components/inspection-compare";
@@ -16,6 +16,11 @@ import { BOOKING_STATUS, DEPOSIT_STATUS, type Booking } from "@/lib/bookings";
 import { getErrorMessage } from "@/lib/errors";
 import { formatToman, toFa } from "@/lib/format";
 import { formatJalaliDateTime } from "@/lib/jalali";
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 function Row({
   label,
@@ -34,6 +39,16 @@ function Row({
     >
       <dt className={strong ? "" : "text-muted-foreground"}>{label}</dt>
       <dd className="text-end">{value}</dd>
+    </div>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-4" aria-hidden="true">
+      <div className="skeleton h-32 rounded-3xl" />
+      <div className="skeleton h-40 rounded-3xl" />
+      <div className="skeleton h-36 rounded-3xl" />
     </div>
   );
 }
@@ -104,7 +119,7 @@ export default function BookingDetail() {
           type="button"
           onClick={() => router.push("/bookings")}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -113,24 +128,27 @@ export default function BookingDetail() {
 
       <main className="flex flex-1 flex-col gap-4 px-6 pb-10">
         {error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {error}
           </p>
         ) : null}
 
-        {!booking && !error ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
-        ) : null}
+        {!booking && !error ? <DetailSkeleton /> : null}
 
         {booking && status ? (
           <>
-            <section className="flex flex-col gap-3 rounded-3xl bg-card p-5">
+            <section
+              className="stagger flex flex-col gap-3 rounded-3xl bg-card p-5"
+              style={stagger(0)}
+            >
               <div className="flex items-center justify-between gap-3">
                 <h2 className="font-semibold">{booking.vehicle.title}</h2>
                 <span
-                  className={`rounded-full px-3 py-0.5 text-xs font-medium ${status.className}`}
+                  key={booking.status}
+                  className={`animate-scale-in rounded-full px-3 py-0.5 text-xs font-medium ${status.className}`}
                 >
                   {status.label}
                 </span>
@@ -148,7 +166,10 @@ export default function BookingDetail() {
             </section>
 
             {showTripCard ? (
-              <section className="flex flex-col gap-3 rounded-3xl bg-primary/10 p-5">
+              <section
+                className="stagger flex flex-col gap-3 rounded-3xl bg-primary/10 p-5"
+                style={stagger(1)}
+              >
                 <h3 className="font-semibold">سفر</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {booking.status === "active"
@@ -166,7 +187,10 @@ export default function BookingDetail() {
               </section>
             ) : null}
 
-            <section className="rounded-3xl bg-card px-5 py-2">
+            <section
+              className="stagger rounded-3xl bg-card px-5 py-2"
+              style={stagger(2)}
+            >
               <dl className="divide-y divide-border">
                 <Row label="شروع" value={formatJalaliDateTime(booking.start_at)} />
                 <Row label="پایان" value={formatJalaliDateTime(booking.end_at)} />
@@ -184,7 +208,10 @@ export default function BookingDetail() {
               </dl>
             </section>
 
-            <section className="rounded-3xl bg-card px-5 py-2">
+            <section
+              className="stagger rounded-3xl bg-card px-5 py-2"
+              style={stagger(3)}
+            >
               <dl className="divide-y divide-border">
                 <Row
                   label="هزینه اجاره"
@@ -225,7 +252,10 @@ export default function BookingDetail() {
             </section>
 
             {booking.status === "completed" ? (
-              <section className="rounded-3xl bg-card px-5 py-2">
+              <section
+                className="stagger rounded-3xl bg-card px-5 py-2"
+                style={stagger(4)}
+              >
                 <dl className="divide-y divide-border">
                   <Row
                     label="زمان پایان سفر"
@@ -279,13 +309,16 @@ export default function BookingDetail() {
             ) : null}
 
             {booking.status === "cancelled" && booking.cancel_reason ? (
-              <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground">
+              <p className="animate-fade-up rounded-2xl bg-card p-4 text-sm text-muted-foreground">
                 دلیل لغو: {booking.cancel_reason}
               </p>
             ) : null}
 
             {booking.can_cancel ? (
-              <section className="flex flex-col gap-3 rounded-3xl bg-card p-5">
+              <section
+                className="stagger flex flex-col gap-3 rounded-3xl bg-card p-5"
+                style={stagger(6)}
+              >
                 <h3 className="font-semibold">لغو رزرو</h3>
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {!isRenter
@@ -296,7 +329,7 @@ export default function BookingDetail() {
                 </p>
 
                 {confirming ? (
-                  <div className="flex flex-col gap-3">
+                  <div className="animate-fade-up flex flex-col gap-3">
                     <Textarea
                       placeholder="دلیل لغو (اختیاری)"
                       maxLength={300}
@@ -310,6 +343,9 @@ export default function BookingDetail() {
                         onClick={handleCancel}
                         className="h-12 flex-1 rounded-full bg-destructive font-bold text-white hover:bg-destructive/90"
                       >
+                        {cancelling ? (
+                          <LoaderCircle className="animate-spin" />
+                        ) : null}
                         {cancelling ? "در حال لغو…" : "تأیید لغو"}
                       </Button>
                       <Button

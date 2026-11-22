@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -37,7 +37,7 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-4 rounded-3xl bg-card p-5">
+    <section className="animate-fade-up flex flex-col gap-4 rounded-3xl bg-card p-5">
       <h2 className="font-semibold">{title}</h2>
       {children}
     </section>
@@ -187,7 +187,7 @@ export default function TripFlow() {
     : 0;
 
   const demoPanel = DEMO_MODE ? (
-    <label className="flex cursor-pointer items-start gap-3 rounded-2xl bg-secondary p-4 text-sm">
+    <label className="animate-fade-up flex cursor-pointer items-start gap-3 rounded-2xl bg-secondary p-4 text-sm">
       <input
         type="checkbox"
         checked={demoLocation}
@@ -210,7 +210,7 @@ export default function TripFlow() {
           type="button"
           onClick={() => router.push(`/bookings/${id}`)}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -219,19 +219,23 @@ export default function TripFlow() {
 
       <main className="flex flex-1 flex-col gap-4 px-6 pb-10">
         {loadError ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {loadError}
           </p>
         ) : null}
 
         {!booking && !loadError ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
+          <div className="flex flex-col gap-4" aria-hidden="true">
+            <div className="skeleton h-20 rounded-3xl" />
+            <div className="skeleton h-48 rounded-3xl" />
+          </div>
         ) : null}
 
         {booking && booking.role !== "renter" ? (
-          <p className="rounded-3xl bg-card p-5 text-sm text-muted-foreground">
+          <p className="animate-fade-up rounded-3xl bg-card p-5 text-sm text-muted-foreground">
             این صفحه مخصوص اجاره‌کننده است.{" "}
             <Link href={`/bookings/${id}`} className="text-primary underline">
               بازگشت به رزرو
@@ -241,7 +245,7 @@ export default function TripFlow() {
 
         {booking && trip && booking.role === "renter" ? (
           <>
-            <div className="rounded-3xl bg-card p-4">
+            <div className="animate-fade-up rounded-3xl bg-card p-4">
               <h2 className="font-semibold">{booking.vehicle.title}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {booking.vehicle.address}
@@ -324,7 +328,10 @@ export default function TripFlow() {
                 </Card>
 
                 {error ? (
-                  <p role="alert" className="px-2 text-sm text-destructive">
+                  <p
+                    role="alert"
+                    className="animate-fade-up px-2 text-sm text-destructive"
+                  >
                     {error}
                   </p>
                 ) : null}
@@ -336,6 +343,7 @@ export default function TripFlow() {
                   onClick={handleStart}
                   className="h-14 rounded-full text-base font-bold"
                 >
+                  {busy ? <LoaderCircle className="animate-spin" /> : null}
                   {busy ? "در حال بررسی…" : "باز کردن قفل و شروع سفر"}
                 </Button>
                 {!trip.start_photos_done ? (
@@ -349,9 +357,9 @@ export default function TripFlow() {
             {booking.status === "active" ? (
               <>
                 <section
-                  className={`rounded-3xl p-6 text-center ${
+                  className={`animate-scale-in rounded-3xl p-6 text-center ${
                     remaining > 0
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground shadow-[0_12px_32px_-12px_rgb(255_199_0/0.55)]"
                       : "bg-red-500/15 text-red-300"
                   }`}
                 >
@@ -366,7 +374,7 @@ export default function TripFlow() {
                   </p>
                   {remaining <= 0 ? (
                     <p className="mt-3 text-sm">
-                      جریمه تأخیر تا اینون: {formatToman(trip.late_fee_now)} (از
+                      جریمه تأخیر تا الان: {formatToman(trip.late_fee_now)} (از
                       سپرده کم می‌شود)
                     </p>
                   ) : null}
@@ -389,6 +397,7 @@ export default function TripFlow() {
                     onClick={handleExtend}
                     className="h-12 rounded-full font-bold"
                   >
+                    {busy ? <LoaderCircle className="animate-spin" /> : null}
                     {busy ? "در حال انجام…" : `تمدید ${toFa(extendHours)} ساعت`}
                   </Button>
                 </Card>
@@ -433,7 +442,10 @@ export default function TripFlow() {
                 </Card>
 
                 {error ? (
-                  <p role="alert" className="px-2 text-sm text-destructive">
+                  <p
+                    role="alert"
+                    className="animate-fade-up px-2 text-sm text-destructive"
+                  >
                     {error}
                   </p>
                 ) : null}
@@ -443,6 +455,7 @@ export default function TripFlow() {
                   onClick={handleEnd}
                   className="h-14 rounded-full text-base font-bold"
                 >
+                  {busy ? <LoaderCircle className="animate-spin" /> : null}
                   {busy ? "در حال بررسی…" : "پایان سفر و قفل کردن"}
                 </Button>
                 {!trip.end_photos_done ? (
@@ -492,7 +505,7 @@ export default function TripFlow() {
             ) : null}
 
             {booking.status === "cancelled" ? (
-              <p className="rounded-3xl bg-card p-5 text-sm text-muted-foreground">
+              <p className="animate-fade-up rounded-3xl bg-card p-5 text-sm text-muted-foreground">
                 این رزرو لغو شده است.
               </p>
             ) : null}
