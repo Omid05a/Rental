@@ -1,7 +1,12 @@
 "use client";
 
-import { ImagePlus } from "lucide-react";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { ImagePlus, LoaderCircle } from "lucide-react";
+import {
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 
 import { DigitsInput, Field } from "@/components/form-bits";
 import { Button } from "@/components/ui/button";
@@ -19,6 +24,11 @@ type Props = {
   booking: Booking;
   onChanged: () => Promise<void>;
 };
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 function depositLeft(booking: Booking) {
   return Math.max(
@@ -70,7 +80,7 @@ function ReportForm({ booking, onChanged }: Props) {
   }
 
   return (
-    <section className="rounded-3xl bg-card p-5">
+    <section className="animate-fade-up rounded-3xl bg-card p-5">
       <h3 className="font-semibold">گزارش خسارت</h3>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         اگر هنگام تحویل خسارتی دیدید، تا{" "}
@@ -108,7 +118,10 @@ function ReportForm({ booking, onChanged }: Props) {
         </Field>
 
         {error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {error}
           </p>
         ) : null}
@@ -118,6 +131,7 @@ function ReportForm({ booking, onChanged }: Props) {
           disabled={busy}
           className="h-12 rounded-full font-bold"
         >
+          {busy ? <LoaderCircle className="animate-spin" /> : null}
           {busy ? "در حال ثبت…" : "ثبت گزارش"}
         </Button>
       </form>
@@ -187,11 +201,12 @@ function ClaimView({ booking, onChanged }: Props) {
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-3xl bg-card p-5">
+    <section className="animate-fade-up flex flex-col gap-4 rounded-3xl bg-card p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-semibold">گزارش خسارت</h3>
         <span
-          className={`rounded-full px-3 py-0.5 text-xs font-medium ${
+          key={open ? "open" : "closed"}
+          className={`animate-scale-in rounded-full px-3 py-0.5 text-xs font-medium ${
             open
               ? "bg-primary/15 text-primary"
               : "bg-green-500/15 text-green-400"
@@ -234,13 +249,17 @@ function ClaimView({ booking, onChanged }: Props) {
 
       {damage.photos.length > 0 ? (
         <ul className="grid grid-cols-3 gap-2">
-          {damage.photos.map((photo) => (
-            <li key={photo.image}>
+          {damage.photos.map((photo, index) => (
+            <li
+              key={photo.image}
+              className="stagger"
+              style={stagger(Math.min(index, 5))}
+            >
               <a
                 href={photo.image}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block aspect-square overflow-hidden rounded-2xl bg-secondary"
+                className="press block aspect-square overflow-hidden rounded-2xl bg-secondary"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -256,11 +275,15 @@ function ClaimView({ booking, onChanged }: Props) {
 
       {open && isOwner && damage.photos.length < MAX_PHOTOS ? (
         <label
-          className={`flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-secondary font-medium ${
+          className={`press flex h-12 cursor-pointer items-center justify-center gap-2 rounded-full bg-secondary font-medium hover:bg-accent ${
             busy ? "pointer-events-none opacity-60" : ""
           }`}
         >
-          <ImagePlus className="size-5" />
+          {busy ? (
+            <LoaderCircle className="size-5 animate-spin" />
+          ) : (
+            <ImagePlus className="size-5" />
+          )}
           {busy
             ? "در حال ارسال…"
             : `افزودن عکس مدرک (${toFa(damage.photos.length)} از ${toFa(MAX_PHOTOS)})`}
@@ -292,6 +315,7 @@ function ClaimView({ booking, onChanged }: Props) {
             disabled={busy}
             className="h-12 rounded-full font-bold"
           >
+            {busy ? <LoaderCircle className="animate-spin" /> : null}
             {busy ? "در حال ارسال…" : "ثبت پاسخ"}
           </Button>
         </form>
@@ -306,7 +330,7 @@ function ClaimView({ booking, onChanged }: Props) {
       ) : null}
 
       {error ? (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="animate-fade-up text-sm text-destructive">
           {error}
         </p>
       ) : null}

@@ -1,5 +1,6 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { RatingBadge, StarInput, Stars } from "@/components/stars";
@@ -18,7 +19,7 @@ function ReviewCard({
   review: ReviewItem;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-2xl bg-secondary p-4">
+    <div className="animate-scale-in flex flex-col gap-2 rounded-2xl bg-secondary p-4">
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-medium">{title}</span>
         <Stars value={review.rating} />
@@ -83,7 +84,7 @@ export function ReviewSection({ bookingId }: { bookingId: number }) {
   const name = state.counterpart_name || target;
 
   return (
-    <section className="flex flex-col gap-4 rounded-3xl bg-card p-5">
+    <section className="animate-fade-up flex flex-col gap-4 rounded-3xl bg-card p-5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-semibold">امتیاز و نظر</h3>
         <RatingBadge
@@ -109,7 +110,10 @@ export function ReviewSection({ bookingId }: { bookingId: number }) {
             className="min-h-24 rounded-3xl border-0 bg-secondary p-4 text-base"
           />
           {error ? (
-            <p role="alert" className="px-2 text-sm text-destructive">
+            <p
+              role="alert"
+              className="animate-fade-up px-2 text-sm text-destructive"
+            >
               {error}
             </p>
           ) : null}
@@ -118,6 +122,7 @@ export function ReviewSection({ bookingId }: { bookingId: number }) {
             disabled={busy}
             className="h-12 rounded-full font-bold"
           >
+            {busy ? <LoaderCircle className="animate-spin" /> : null}
             {busy ? "در حال ثبت…" : "ثبت نظر"}
           </Button>
           <p className="text-center text-xs leading-relaxed text-muted-foreground">
