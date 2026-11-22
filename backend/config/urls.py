@@ -24,9 +24,13 @@ urlpatterns = [
     path("api/", include("apps.bookings.earnings")),
     path("api/", include("apps.notifications.urls")),
     path("api/", include("apps.reviews.urls")),
-    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
 ]
+
+if settings.API_DOCS_ENABLED:
+    urlpatterns += [
+        path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+        path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
+    ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
