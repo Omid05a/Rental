@@ -17,6 +17,12 @@ DEMO_MODE = os.environ.get("DJANGO_DEMO", "0") == "1"
 USE_HTTPS = os.environ.get("DJANGO_USE_HTTPS", "0") == "1"
 
 TESTING = "test" in sys.argv
+# The simulated payment gateway adds money without a real payment, so it is
+# only available in development, tests and demo mode.
+SIMULATED_PAYMENTS = DEBUG or DEMO_MODE or TESTING
+
+# Swagger UI and the API schema are only exposed in development and demo mode.
+API_DOCS_ENABLED = DEBUG or DEMO_MODE
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
