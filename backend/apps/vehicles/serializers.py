@@ -91,7 +91,7 @@ class VehicleSerializer(DistanceMixin, serializers.ModelSerializer):
             "owner_first_name",
             "distance_m",
         )
-        read_only_fields = ("id", "approval_status", "rejection_reason")
+        read_only_fields = ("id", "approval_status", "rejection_reason", "pickup_radius_m")
 
     def get_location_locked(self, obj):
         # Only the owner needs to know; the public API always reports False.
