@@ -45,7 +45,7 @@ export default function EditVehicle() {
           type="button"
           onClick={() => router.push(`/vehicles/mine/${id}`)}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -54,23 +54,31 @@ export default function EditVehicle() {
 
       <main className="flex flex-1 flex-col px-6 pb-10">
         {error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {error}
           </p>
         ) : null}
 
         {!vehicle && !error ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
+          <div className="flex flex-col gap-4" aria-hidden="true">
+            <div className="skeleton h-14 rounded-full" />
+            <div className="skeleton h-14 rounded-full" />
+            <div className="skeleton h-14 rounded-full" />
+            <div className="skeleton h-28 rounded-3xl" />
+          </div>
         ) : null}
 
         {vehicle ? (
-          <VehicleForm
-            key={vehicle.id}
-            vehicle={vehicle}
-            onSaved={() => router.replace(`/vehicles/mine/${id}`)}
-          />
+          <div className="animate-fade-up">
+            <VehicleForm
+              key={vehicle.id}
+              vehicle={vehicle}
+              onSaved={() => router.replace(`/vehicles/mine/${id}`)}
+            />
+          </div>
         ) : null}
       </main>
     </PageShell>
