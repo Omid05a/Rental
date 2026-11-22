@@ -23,14 +23,14 @@ export default function NewVehiclePage() {
           type="button"
           onClick={() => router.push("/vehicles/mine")}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
         <h1 className="text-xl font-bold">ثبت وسیله جدید</h1>
       </header>
 
-      <main className="flex flex-1 flex-col px-6 pb-10">
+      <main className="animate-fade-up flex flex-1 flex-col px-6 pb-10">
         {user.verification_status !== "approved" ? (
           <div className="flex flex-col gap-3 rounded-3xl bg-card p-5">
             <p className="text-sm leading-relaxed text-muted-foreground">
