@@ -14,11 +14,18 @@ from .serializers import (
     UserSerializer,
     VerifyOTPSerializer,
 )
+from .throttles import (
+    OTPRequestIPThrottle,
+    OTPRequestPhoneThrottle,
+    OTPVerifyIPThrottle,
+    OTPVerifyPhoneThrottle,
+)
 
 
 class RequestOTPView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
+    throttle_classes = [OTPRequestIPThrottle, OTPRequestPhoneThrottle]
 
     @extend_schema(request=RequestOTPSerializer, responses={200: None})
     def post(self, request):
@@ -37,9 +44,9 @@ class RequestOTPView(APIView):
             )
 
         data = {"detail": "Verification code sent."}
-        if settings.DEBUG:
-            # Development only: expose the code so the demo works
-            # without a real SMS provider.
+        if settings.DEBUG or settings.DEMO_MODE:
+            # Demo only: expose the code so the app works without a real
+            # SMS provider. Never enable this on a public production server.
             data["dev_code"] = code
         return Response(data)
 
@@ -47,6 +54,7 @@ class RequestOTPView(APIView):
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
     authentication_classes = []
+    throttle_classes = [OTPVerifyIPThrottle, OTPVerifyPhoneThrottle]
 
     @extend_schema(request=VerifyOTPSerializer, responses={200: None})
     def post(self, request):
