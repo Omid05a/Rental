@@ -1,5 +1,6 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useMemo, useState, type FormEvent } from "react";
 
@@ -36,7 +37,7 @@ const LocationPicker = dynamic(
   () => import("@/components/map/location-picker"),
   {
     ssr: false,
-    loading: () => <div className="h-72 animate-pulse rounded-3xl bg-card" />,
+    loading: () => <div className="skeleton h-72 rounded-3xl" />,
   },
 );
 
@@ -264,7 +265,7 @@ export function VehicleForm({ vehicle, onSaved }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       {vehicle?.approval_status === "approved" ? (
-        <p className="rounded-2xl bg-primary/10 p-4 text-sm leading-relaxed">
+        <p className="animate-scale-in rounded-2xl bg-primary/10 p-4 text-sm leading-relaxed">
           اگر عنوان، برند، مدل، سال ساخت، توضیحات، آدرس یا مکان وسیله را تغییر
           دهید، وسیله دوباره بررسی می‌شود و تا تأیید، در جستجو نمایش داده
           نمی‌شود. تغییر قیمت و قوانین نیازی به بررسی ندارد.
@@ -272,7 +273,7 @@ export function VehicleForm({ vehicle, onSaved }: Props) {
       ) : null}
 
       {vehicle?.approval_status === "rejected" ? (
-        <div className="flex flex-col gap-2 rounded-2xl bg-red-500/10 p-4 text-sm leading-relaxed text-red-300">
+        <div className="animate-scale-in flex flex-col gap-2 rounded-2xl bg-red-500/10 p-4 text-sm leading-relaxed text-red-300">
           <p>
             این وسیله تأیید نشد
             {vehicle.rejection_reason
@@ -353,7 +354,7 @@ export function VehicleForm({ vehicle, onSaved }: Props) {
       </Field>
 
       {isCar ? (
-        <>
+        <div className="animate-fade-up flex flex-col gap-6">
           <Field label="گیربکس">
             <SegmentedControl
               label="گیربکس"
@@ -401,7 +402,7 @@ export function VehicleForm({ vehicle, onSaved }: Props) {
               onSelect={(iso) => set("insurance_expiry", iso)}
             />
           </Field>
-        </>
+        </div>
       ) : null}
 
       <Field
@@ -450,7 +451,7 @@ export function VehicleForm({ vehicle, onSaved }: Props) {
       </Field>
 
       {isCar ? (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="animate-fade-up grid grid-cols-2 gap-3">
           <Field
             label="سقف کیلومتر روزانه"
             htmlFor="daily_km_limit"
@@ -505,7 +506,10 @@ export function VehicleForm({ vehicle, onSaved }: Props) {
       </Field>
 
       {formError ? (
-        <p role="alert" className="px-2 text-sm text-destructive">
+        <p
+          role="alert"
+          className="animate-fade-up px-2 text-sm text-destructive"
+        >
           {formError}
         </p>
       ) : null}
@@ -515,6 +519,7 @@ export function VehicleForm({ vehicle, onSaved }: Props) {
         disabled={submitting}
         className="h-14 w-full rounded-full text-base font-bold"
       >
+        {submitting ? <LoaderCircle className="animate-spin" /> : null}
         {submitting
           ? "در حال ذخیره…"
           : isEdit

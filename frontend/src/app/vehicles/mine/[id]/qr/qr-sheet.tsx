@@ -51,7 +51,7 @@ export default function QrSheet() {
           type="button"
           onClick={() => router.push(`/vehicles/mine/${id}`)}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -60,20 +60,24 @@ export default function QrSheet() {
 
       <main className="flex flex-1 flex-col gap-5 px-6 pb-10">
         {error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {error}
           </p>
         ) : null}
 
         {!data && !error ? (
-          <p className="text-center text-sm text-muted-foreground print:hidden">
-            در حال بارگذاری…
-          </p>
+          <div
+            className="skeleton mx-auto h-96 w-full max-w-xs rounded-3xl print:hidden"
+            aria-hidden="true"
+          />
         ) : null}
 
         {data ? (
           <>
-            <section className="mx-auto w-full max-w-xs rounded-3xl bg-white p-6 text-center text-black">
+            <section className="animate-scale-in mx-auto w-full max-w-xs rounded-3xl bg-white p-6 text-center text-black print:animate-none">
               <p
                 className="text-lg font-semibold tracking-[0.18em]"
                 style={{ fontFamily: "Poppins, system-ui, sans-serif" }}
@@ -107,7 +111,10 @@ export default function QrSheet() {
               </p>
             </section>
 
-            <div className="flex flex-col gap-3 print:hidden">
+            <div
+              className="stagger flex flex-col gap-3 print:hidden"
+              style={{ animationDelay: "200ms" }}
+            >
               <Button
                 onClick={() => window.print()}
                 className="h-14 rounded-full text-base font-bold"
