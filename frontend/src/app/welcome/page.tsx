@@ -42,8 +42,8 @@ export default function WelcomePage() {
           key={slide.image}
           src={slide.image}
           alt=""
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-            i === index ? "opacity-100" : "opacity-0"
+          className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out ${
+            i === index ? "scale-100 opacity-100" : "scale-105 opacity-0"
           }`}
         />
       ))}
@@ -51,13 +51,14 @@ export default function WelcomePage() {
       <button
         type="button"
         onClick={finish}
-        className="absolute end-6 top-6 rounded-full bg-black/40 px-4 py-2 text-sm text-white"
+        className="press animate-fade-in absolute end-6 top-6 rounded-full bg-black/40 px-4 py-2 text-sm text-white hover:bg-black/60"
       >
         رد کردن
       </button>
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-6 px-6 pb-10 text-white">
-        <div>
+        {/* Re-keyed per slide so the text animates in on every change */}
+        <div key={index} className="animate-fade-up">
           <h1 className="text-3xl font-bold leading-snug">
             {SLIDES[index].title}
           </h1>
@@ -70,7 +71,7 @@ export default function WelcomePage() {
           {SLIDES.map((slide, i) => (
             <span
               key={slide.image}
-              className={`h-1.5 rounded-full transition-all ${
+              className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
                 i === index ? "w-8 bg-primary" : "w-1.5 bg-white/40"
               }`}
             />
@@ -78,7 +79,8 @@ export default function WelcomePage() {
         </div>
 
         <Button
-          className="h-14 w-full rounded-full text-base font-bold"
+          className="animate-fade-up h-14 w-full rounded-full text-base font-bold"
+          style={{ animationDelay: "200ms" }}
           onClick={() => (isLast ? finish() : setIndex(index + 1))}
         >
           {isLast ? "شروع کنید" : "بعدی"}
