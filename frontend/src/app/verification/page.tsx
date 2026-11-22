@@ -1,8 +1,14 @@
 "use client";
 
-import { ArrowRight, Check, ImagePlus } from "lucide-react";
+import { ArrowRight, Check, ImagePlus, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, type ChangeEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+} from "react";
 
 import { PageShell } from "@/components/page-shell";
 import { Button } from "@/components/ui/button";
@@ -51,6 +57,11 @@ const DOC_INFO: Record<DocType, { title: string; hint: string }> = {
 };
 
 const MAX_BYTES = 5 * 1024 * 1024;
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 export default function VerificationPage() {
   const router = useRouter();
@@ -145,7 +156,7 @@ export default function VerificationPage() {
           type="button"
           onClick={() => router.push("/profile")}
           aria-label="بازگشت"
-          className="flex size-10 items-center justify-center rounded-full bg-card"
+          className="press flex size-10 items-center justify-center rounded-full bg-card hover:bg-accent"
         >
           <ArrowRight className="size-5" />
         </button>
@@ -153,49 +164,52 @@ export default function VerificationPage() {
       </header>
 
       <main className="flex flex-1 flex-col gap-4 px-6 pb-10">
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="animate-fade-up text-sm leading-relaxed text-muted-foreground">
           برای اجاره یا ثبت وسیله، هویت شما باید تأیید شود. تصاویر باید واضح و
           خوانا باشند (JPG، PNG یا WebP، حداکثر ۵ مگابایت).
         </p>
 
         {data?.status === "rejected" && data.rejection_reason ? (
-          <p className="rounded-2xl bg-red-500/10 p-3 text-sm text-red-400">
+          <p className="animate-scale-in rounded-2xl bg-red-500/10 p-3 text-sm text-red-400">
             دلیل رد مدارک: {data.rejection_reason}
           </p>
         ) : null}
 
         {data && !editable ? (
-          <p className="rounded-2xl bg-card p-3 text-sm text-muted-foreground">
+          <p className="animate-fade-in rounded-2xl bg-card p-3 text-sm text-muted-foreground">
             مدارک شما در حال بررسی است یا تأیید شده و قابل تغییر نیست.
           </p>
         ) : null}
 
         {!data && !error ? (
-          <p className="text-center text-sm text-muted-foreground">
-            در حال بارگذاری…
-          </p>
+          <ul className="flex flex-col gap-3" aria-hidden="true">
+            {[0, 1, 2, 3].map((n) => (
+              <li key={n} className="skeleton h-24 rounded-3xl" />
+            ))}
+          </ul>
         ) : null}
 
         <ul className="flex flex-col gap-3">
-          {data?.documents.map((doc) => {
+          {data?.documents.map((doc, index) => {
             const info = DOC_INFO[doc.doc_type];
             const busy = busyType === doc.doc_type;
             return (
               <li
                 key={doc.doc_type}
-                className="flex items-center gap-4 rounded-3xl bg-card p-4"
+                className="stagger flex items-center gap-4 rounded-3xl bg-card p-4"
+                style={stagger(index)}
               >
                 <div
-                  className={`flex size-11 shrink-0 items-center justify-center rounded-full ${
+                  className={`flex size-11 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
                     doc.uploaded
                       ? "bg-green-500/15 text-green-400"
                       : "bg-white/10 text-white/60"
                   }`}
                 >
                   {doc.uploaded ? (
-                    <Check className="size-5" />
+                    <Check key="done" className="animate-scale-in size-5" />
                   ) : (
-                    <ImagePlus className="size-5" />
+                    <ImagePlus key="todo" className="size-5" />
                   )}
                 </div>
 
@@ -208,10 +222,13 @@ export default function VerificationPage() {
 
                 {editable ? (
                   <label
-                    className={`inline-flex h-10 shrink-0 cursor-pointer items-center rounded-full bg-secondary px-4 text-sm font-medium ${
+                    className={`press inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-secondary px-4 text-sm font-medium hover:bg-accent ${
                       busy || submitting ? "pointer-events-none opacity-50" : ""
                     }`}
                   >
+                    {busy ? (
+                      <LoaderCircle className="size-4 animate-spin" />
+                    ) : null}
                     {busy ? "در حال ارسال…" : doc.uploaded ? "تغییر" : "انتخاب"}
                     <input
                       type="file"
@@ -228,18 +245,22 @@ export default function VerificationPage() {
         </ul>
 
         {error ? (
-          <p role="alert" className="px-2 text-sm text-destructive">
+          <p
+            role="alert"
+            className="animate-fade-up px-2 text-sm text-destructive"
+          >
             {error}
           </p>
         ) : null}
 
         {editable ? (
-          <div className="mt-auto flex flex-col gap-3 pt-4">
+          <div className="animate-fade-up mt-auto flex flex-col gap-3 pt-4">
             <Button
               disabled={!allUploaded || submitting || busyType !== null}
               onClick={handleSubmit}
               className="h-14 w-full rounded-full text-base font-bold"
             >
+              {submitting ? <LoaderCircle className="animate-spin" /> : null}
               {submitting ? "در حال ارسال…" : "ارسال برای بررسی"}
             </Button>
             <p className="text-center text-xs text-muted-foreground">

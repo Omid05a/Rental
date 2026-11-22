@@ -1,8 +1,8 @@
 "use client";
 
-import { User as UserIcon } from "lucide-react";
+import { LoaderCircle, User as UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 
 import { IconInput } from "@/components/icon-input";
 import { AuthHeader, PageShell } from "@/components/page-shell";
@@ -10,6 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRequireAuth, type User } from "@/lib/auth";
 import { getErrorMessage } from "@/lib/errors";
+
+// Staggered entrance delay index (see .stagger in globals.css)
+function stagger(index: number): CSSProperties {
+  return { "--i": index } as CSSProperties;
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -55,7 +60,10 @@ export default function OnboardingPage() {
 
       <main className="flex flex-1 flex-col px-6">
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5">
-          <div className="flex flex-col gap-2">
+          <div
+            className="stagger flex flex-col gap-2"
+            style={{ ...stagger(4) }}
+          >
             <Label htmlFor="first_name" className="px-2">
               نام
             </Label>
@@ -68,7 +76,10 @@ export default function OnboardingPage() {
             />
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div
+            className="stagger flex flex-col gap-2"
+            style={{ ...stagger(5) }}
+          >
             <Label htmlFor="last_name" className="px-2">
               نام خانوادگی
             </Label>
@@ -82,7 +93,10 @@ export default function OnboardingPage() {
           </div>
 
           {error ? (
-            <p role="alert" className="px-2 text-sm text-destructive">
+            <p
+              role="alert"
+              className="animate-fade-up px-2 text-sm text-destructive"
+            >
               {error}
             </p>
           ) : null}
@@ -90,8 +104,10 @@ export default function OnboardingPage() {
           <Button
             type="submit"
             disabled={loading || !first || !last}
-            className="mt-2 h-14 w-full rounded-full text-base font-bold"
+            className="stagger mt-2 h-14 w-full rounded-full text-base font-bold"
+            style={stagger(6)}
           >
+            {loading ? <LoaderCircle className="animate-spin" /> : null}
             {loading ? "در حال ذخیره…" : "ذخیره و ادامه"}
           </Button>
         </form>

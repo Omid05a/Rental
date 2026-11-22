@@ -1,6 +1,6 @@
 "use client";
 
-import { Smartphone } from "lucide-react";
+import { LoaderCircle, Smartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
@@ -111,8 +111,10 @@ export default function LoginPage() {
       <main className="flex flex-1 flex-col px-6">
         {step === "phone" ? (
           <form
+            key="phone"
             onSubmit={handlePhoneSubmit}
-            className="flex flex-1 flex-col gap-5"
+            className="animate-fade-up flex flex-1 flex-col gap-5"
+            style={{ animationDelay: "380ms" }}
           >
             <div className="flex flex-col gap-2">
               <Label htmlFor="phone" className="px-2">
@@ -132,7 +134,10 @@ export default function LoginPage() {
             </div>
 
             {error ? (
-              <p role="alert" className="px-2 text-sm text-destructive">
+              <p
+                role="alert"
+                className="animate-fade-up px-2 text-sm text-destructive"
+              >
                 {error}
               </p>
             ) : null}
@@ -142,6 +147,7 @@ export default function LoginPage() {
               disabled={loading || phone.length < 11}
               className="h-14 w-full rounded-full text-base font-bold"
             >
+              {loading ? <LoaderCircle className="animate-spin" /> : null}
               {loading ? "در حال ارسال…" : "دریافت کد تأیید"}
             </Button>
 
@@ -150,7 +156,7 @@ export default function LoginPage() {
             </p>
           </form>
         ) : (
-          <div className="flex flex-1 flex-col gap-5">
+          <div key="code" className="animate-fade-up flex flex-1 flex-col gap-5">
             <div className="flex flex-col items-center gap-1 text-center">
               <p className="text-sm text-muted-foreground">
                 کد ۶ رقمی به شماره <bdi dir="ltr">{toFa(phone)}</bdi> ارسال شد.
@@ -161,7 +167,7 @@ export default function LoginPage() {
                   setStep("phone");
                   setError(null);
                 }}
-                className="text-sm font-medium text-primary underline underline-offset-4"
+                className="press text-sm font-medium text-primary underline underline-offset-4"
               >
                 ویرایش شماره
               </button>
@@ -190,7 +196,10 @@ export default function LoginPage() {
             </div>
 
             {error ? (
-              <p role="alert" className="text-center text-sm text-destructive">
+              <p
+                role="alert"
+                className="animate-fade-up text-center text-sm text-destructive"
+              >
                 {error}
               </p>
             ) : null}
@@ -201,6 +210,7 @@ export default function LoginPage() {
               onClick={() => verify(code)}
               className="h-14 w-full rounded-full text-base font-bold"
             >
+              {loading ? <LoaderCircle className="animate-spin" /> : null}
               {loading ? "در حال بررسی…" : "تأیید و ورود"}
             </Button>
 
@@ -214,14 +224,14 @@ export default function LoginPage() {
                 variant="ghost"
                 disabled={loading}
                 onClick={requestCode}
-                className="h-12 rounded-full text-primary"
+                className="animate-fade-in h-12 rounded-full text-primary"
               >
                 ارسال مجدد کد
               </Button>
             )}
 
             {devCode ? (
-              <div className="mt-auto mb-8 rounded-2xl bg-card p-4 text-center text-sm text-muted-foreground">
+              <div className="animate-fade-in mt-auto mb-8 rounded-2xl bg-card p-4 text-center text-sm text-muted-foreground">
                 <p>
                   کد آزمایشی (فقط در حالت توسعه):{" "}
                   <bdi dir="ltr" className="font-bold text-foreground">
@@ -234,7 +244,7 @@ export default function LoginPage() {
                     setCode(devCode);
                     void verify(devCode);
                   }}
-                  className="mt-1 font-medium text-primary underline underline-offset-4"
+                  className="press mt-1 font-medium text-primary underline underline-offset-4"
                 >
                   پر کردن خودکار
                 </button>
