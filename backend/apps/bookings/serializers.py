@@ -166,8 +166,14 @@ class BookingSerializer(serializers.ModelSerializer):
         }
 
     def get_counterpart(self, obj):
-        other = obj.vehicle.owner if obj.renter_id == self._user().id else obj.renter
-        return {"first_name": other.first_name, "phone": other.phone}
+        is_renter = obj.renter_id == self._user().id
+        other = obj.vehicle.owner if is_renter else obj.renter
+        # Only the owner sees the renter's number. The owner's number is
+        # never shared with renters.
+        return {
+            "first_name": other.first_name,
+            "phone": "" if is_renter else other.phone,
+        }
 
     def get_can_cancel(self, obj):
         return (
