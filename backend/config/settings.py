@@ -1,11 +1,32 @@
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "insecure-dev-key")
 DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
+
+# Demo mode exposes the OTP code and the dev QR endpoint so the app can be
+# shown without an SMS provider. Keep it off on any real server.
+DEMO_MODE = os.environ.get("DJANGO_DEMO", "0") == "1"
+
+# True when the site is served over HTTPS (set on the presentation host).
+USE_HTTPS = os.environ.get("DJANGO_USE_HTTPS", "0") == "1"
+
+TESTING = "test" in sys.argv
+
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY:
+    if DEBUG or TESTING:
+        SECRET_KEY = "insecure-dev-key"
+    else:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY must be set when DJANGO_DEBUG is not 1."
+        )
+
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
 INSTALLED_APPS = [
@@ -97,11 +118,32 @@ PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Rate limits for the login endpoints. Tests use very high limits so that
+# repeated logins in the test suite are not blocked.
+if TESTING:
+    OTP_THROTTLE_RATES = {
+        "otp_request_ip": "100000/hour",
+        "otp_request_phone": "100000/hour",
+        "otp_verify_ip": "100000/hour",
+        "otp_verify_phone": "100000/hour",
+    }
+else:
+    OTP_THROTTLE_RATES = {
+        "otp_request_ip": "20/hour",
+        "otp_request_phone": "5/hour",
+        "otp_verify_ip": "60/hour",
+        "otp_verify_phone": "20/hour",
+    }
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_RATES": OTP_THROTTLE_RATES,
+    # Set to the number of reverse proxies in front of the app, otherwise
+    # every client appears to have the proxy's IP.
+    "NUM_PROXIES": int(os.environ.get("DJANGO_NUM_PROXIES", "0")) or None,
 }
 
 SPECTACULAR_SETTINGS = {
@@ -116,12 +158,28 @@ SPECTACULAR_SETTINGS = {
 
 from corsheaders.defaults import default_headers
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
+# Comma-separated list, e.g. "http://localhost:3000,https://rental.example.com"
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ALLOWED_ORIGINS", "http://localhost:3000"
+).split(",")
+
+# Needed for the admin panel when it is served over HTTPS.
+CSRF_TRUSTED_ORIGINS = [
+    origin
+    for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin
 ]
 
 # Allow the custom header used for idempotent payments and bookings.
 CORS_ALLOW_HEADERS = (*default_headers, "idempotency-key")
+
+# Transport security: only applied when the site really runs on HTTPS.
+if USE_HTTPS:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),

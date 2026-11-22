@@ -404,7 +404,7 @@ class DevQrView(APIView):
 
     @extend_schema(responses={200: None})
     def get(self, request, pk):
-        if not settings.DEBUG:
+        if not settings.DEMO_MODE:
             raise Http404()
         booking = get_object_or_404(Booking, pk=pk, renter=request.user)
         return Response({"qr_code": qr_code_for_vehicle(booking.vehicle_id)})

@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
+from django.db import transaction
 from django.utils import timezone
 
 from .models import OTPCode
@@ -29,14 +30,22 @@ def send_sms(phone, message):
 
     Replace this function with a real SMS provider later.
     """
-    logger.warning("SMS to %s: %s", phone, message)
+    if settings.DEBUG or settings.DEMO_MODE:
+        logger.warning("SMS to %s: %s", phone, message)
+    else:
+        # Never write verification codes to production logs.
+        logger.info("SMS sent to %s", phone)
 
 
+@transaction.atomic
 def create_otp(phone):
     now = timezone.now()
     last = OTPCode.objects.filter(phone=phone).first()
     if last and (now - last.created_at).total_seconds() < settings.OTP_RESEND_SECONDS:
         raise OTPError("Please wait before requesting a new code.", "too_many_requests")
+
+    # A new code invalidates every older unused code for this phone.
+    OTPCode.objects.filter(phone=phone, is_used=False).update(is_used=True)
 
     code = generate_code()
     OTPCode.objects.create(
@@ -48,9 +57,16 @@ def create_otp(phone):
     return code
 
 
+@transaction.atomic
 def verify_otp(phone, code):
     now = timezone.now()
-    otp = OTPCode.objects.filter(phone=phone, is_used=False).first()
+    # The row lock makes concurrent guesses count one after another,
+    # so the attempt limit cannot be bypassed with parallel requests.
+    otp = (
+        OTPCode.objects.select_for_update()
+        .filter(phone=phone, is_used=False)
+        .first()
+    )
     if otp is None or otp.expires_at < now:
         raise OTPError("The code is invalid or expired.", "invalid_code")
     if otp.attempts >= settings.OTP_MAX_ATTEMPTS:
