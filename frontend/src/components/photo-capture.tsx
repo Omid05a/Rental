@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Check } from "lucide-react";
+import { Camera, Check, LoaderCircle } from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
 
 import { useAuth } from "@/lib/auth";
@@ -96,7 +96,7 @@ export function PhotoCapture({
             <li key={angle}>
               <label
                 className={cn(
-                  "relative flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl bg-card text-xs text-muted-foreground",
+                  "press relative flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl bg-card text-xs text-muted-foreground hover:bg-accent",
                   (disabled || busyAngle !== null) &&
                     "pointer-events-none opacity-60",
                 )}
@@ -104,16 +104,22 @@ export function PhotoCapture({
                 {photo ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
+                    key={photo.image}
                     src={photo.image}
                     alt=""
-                    className="absolute inset-0 size-full object-cover"
+                    className="animate-fade-in absolute inset-0 size-full object-cover"
                   />
+                ) : busy ? (
+                  <LoaderCircle className="size-6 animate-spin text-primary" />
                 ) : (
                   <Camera className="size-6" />
                 )}
 
                 {photo ? (
-                  <span className="absolute end-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-green-500 text-white">
+                  <span
+                    key={photo.image}
+                    className="animate-scale-in absolute end-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-green-500 text-white"
+                  >
                     <Check className="size-4" />
                   </span>
                 ) : null}
@@ -143,7 +149,10 @@ export function PhotoCapture({
       </ul>
 
       {error ? (
-        <p role="alert" className="px-1 text-sm text-destructive">
+        <p
+          role="alert"
+          className="animate-fade-up px-1 text-sm text-destructive"
+        >
           {error}
         </p>
       ) : null}
