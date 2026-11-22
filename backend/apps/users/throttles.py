@@ -1,5 +1,7 @@
 from rest_framework.throttling import AnonRateThrottle, SimpleRateThrottle
 
+from .serializers import normalize_digits
+
 
 class OTPRequestIPThrottle(AnonRateThrottle):
     scope = "otp_request_ip"
@@ -13,7 +15,8 @@ class _PhoneThrottle(SimpleRateThrottle):
     """Limits requests per phone number, regardless of the client IP."""
 
     def get_cache_key(self, request, view):
-        phone = str(request.data.get("phone", "")).strip()
+        # Normalize digits so "۰۹۱۲..." and "0912..." share one counter.
+        phone = normalize_digits(str(request.data.get("phone", "")))
         if not phone:
             return None
         return self.cache_format % {"scope": self.scope, "ident": phone}

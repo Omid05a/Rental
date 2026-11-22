@@ -7,7 +7,8 @@ from .models import Wallet, WalletTransaction
 from .serializers import TopUpSerializer, TransactionSerializer
 from .services import apply_transaction, get_or_create_wallet
 from .utils import get_idempotency_key
-
+from django.conf import settings
+from django.http import Http404
 
 class WalletView(APIView):
     """Balance and the latest ledger entries of the current user."""
@@ -33,6 +34,8 @@ class TopUpView(APIView):
 
     @extend_schema(request=TopUpSerializer, responses={200: None})
     def post(self, request):
+        if not settings.SIMULATED_PAYMENTS:
+            raise Http404()
         serializer = TopUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
