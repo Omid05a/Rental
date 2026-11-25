@@ -2,7 +2,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import JsonResponse
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from apps.users.admin_views import document_file
@@ -34,3 +35,9 @@ if settings.API_DOCS_ENABLED:
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+elif settings.DEMO_MODE:
+    # Demo only: the static() helper does nothing when DEBUG is off, so serve
+    # public media (vehicle photos) directly. Private documents are not here.
+    urlpatterns += [
+        re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    ]

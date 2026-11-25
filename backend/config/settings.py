@@ -169,6 +169,13 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
     "CORS_ALLOWED_ORIGINS", "http://localhost:3000"
 ).split(",")
 
+# Demo mode: accept the random addresses of Cloudflare quick tunnels. Login
+# uses a Bearer header instead of cookies, so this does not expose sessions.
+if DEMO_MODE:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^https://[a-z0-9.-]+\.(trycloudflare\.com|pinggy\.link|pinggy-free\.link|pinggy\.net)$",
+    ]
+
 # Needed for the admin panel when it is served over HTTPS.
 CSRF_TRUSTED_ORIGINS = [
     origin
