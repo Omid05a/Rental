@@ -35,28 +35,36 @@ export default function WelcomePage() {
   }
 
   return (
-    <div className="relative mx-auto min-h-dvh w-full max-w-md overflow-hidden bg-background">
-      {SLIDES.map((slide, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={slide.image}
-          src={slide.image}
-          alt=""
-          className={`absolute inset-0 h-full w-full object-cover transition-all duration-700 ease-out ${
-            i === index ? "scale-100 opacity-100" : "scale-105 opacity-0"
-          }`}
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-hidden bg-background">
+      {/* The illustration only fills the space above the text, so they never overlap. */}
+      <div className="relative min-h-[38dvh] flex-1">
+        {SLIDES.map((slide, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={slide.image}
+            src={slide.image}
+            alt=""
+            className={`absolute inset-0 h-full w-full object-cover object-[50%_60%] transition-all duration-700 ease-out ${
+              i === index ? "scale-100 opacity-100" : "scale-105 opacity-0"
+            }`}
+          />
+        ))}
+        {/* Soft fade into the text area */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-background to-transparent"
         />
-      ))}
+      </div>
 
       <button
         type="button"
         onClick={finish}
-        className="press animate-fade-in absolute end-6 top-6 rounded-full bg-black/40 px-4 py-2 text-sm text-white hover:bg-black/60"
+        className="press animate-fade-in absolute end-6 top-6 z-10 rounded-full bg-black/40 px-4 py-2 text-sm text-white hover:bg-black/60"
       >
         رد کردن
       </button>
 
-      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-6 px-6 pb-10 text-white">
+      <div className="relative z-10 flex flex-col gap-6 px-6 pb-10 pt-2 text-white">
         {/* Re-keyed per slide so the text animates in on every change */}
         <div key={index} className="animate-fade-up">
           <h1 className="text-3xl font-bold leading-snug">
